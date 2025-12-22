@@ -9,9 +9,7 @@ interface AIChatProps {
 }
 
 const AIChat: React.FC<AIChatProps> = ({ contextCode }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: '0', role: 'model', text: '你好！我是你的异步课堂 AI 助教。如果你对课程有任何疑问，或者这一段 Manim 代码有不懂的地方，随时问我。', timestamp: Date.now() }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const chatSessionRef = useRef<Chat | null>(null);

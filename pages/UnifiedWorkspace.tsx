@@ -12,6 +12,8 @@ import Sidebar, { SidebarTab } from '../components/Sidebar';
 import SidePanel from '../components/SidePanel';
 import GitLensPanel from '../components/GitLensPanel';
 import FloatingGitDock from '../components/FloatingGitDock';
+import FloatingAIDock from '../components/FloatingAIDock';
+import FloatingAIButton from '../components/FloatingAIButton';
 import CompileToolbar from '../components/CompileToolbar';
 import { COURSES, MOCK_MARKDOWN, COMMITS, TRANSCRIPT, CRASH_DATA } from '../constants';
 import { getPanelTitle } from '../utils';
@@ -24,6 +26,7 @@ const UnifiedWorkspace: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SidebarTab>('git');
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [isGitDockVisible, setIsGitDockVisible] = useState(false);
+  const [isAIDockVisible, setIsAIDockVisible] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [currentMode, setCurrentMode] = useState<'edit' | 'debug'>('edit');
   
@@ -237,12 +240,40 @@ const UnifiedWorkspace: React.FC = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
       />
-      
+
       {/* 浮动Git Dock */}
       <FloatingGitDock
         commits={COMMITS}
         isVisible={isGitDockVisible}
         onClose={() => setIsGitDockVisible(false)}
+      />
+
+      {/* 浮动AI Dock */}
+      <FloatingAIDock
+        isVisible={isAIDockVisible}
+        onClose={() => setIsAIDockVisible(false)}
+        contextCode={MOCK_MARKDOWN}
+        selectedContext={{
+          text: "const handleCompile = () => {",
+          file: "components/CompileToolbar.tsx",
+          line: 42
+        }}
+        breakpoints={[
+          {
+            file: "components/VideoPlayer.tsx",
+            line: 156,
+            condition: "isPlaying === true"
+          },
+          {
+            file: "utils.ts",
+            line: 23
+          }
+        ]}
+      />
+
+      {/* 浮动AI按钮 */}
+      <FloatingAIButton
+        onClick={() => setIsAIDockVisible(true)}
       />
 
       {/* Main Content */}
