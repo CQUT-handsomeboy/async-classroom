@@ -137,16 +137,20 @@ const UnifiedVideoPlayer: React.FC<UnifiedVideoPlayerProps> = ({
       
       {/* Liquid Glass Video Controls */}
       <div 
-        className={`absolute bottom-4 left-4 right-4 transition-all duration-300 ${
-          showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+        className={`absolute bottom-4 left-4 right-4 transition-all duration-300 z-50 ${
+          showControls ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-2 pointer-events-none'
         }`}
+        style={{ 
+          pointerEvents: showControls ? 'auto' : 'none'
+        }}
       >
-        <div className="glass-video-control rounded-2xl p-4">
+        <div className="glass-video-control rounded-2xl p-4" style={{ pointerEvents: 'auto' }}>
           {/* Progress Bar */}
           <div className="mb-4">
             <div 
               className="glass-progress h-2 cursor-pointer relative"
               onClick={handleProgressClick}
+              onMouseDown={(e) => e.stopPropagation()}
             >
               <div 
                 className="glass-progress-fill h-full rounded-full transition-all duration-300 relative"
@@ -170,7 +174,11 @@ const UnifiedVideoPlayer: React.FC<UnifiedVideoPlayerProps> = ({
               {/* Skip Back */}
               {showAdvancedControls && (
                 <button
-                  onClick={() => skipTime(-10)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    skipTime(-10);
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
                   className="glass-button glass-button-pulse w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-colors"
                 >
                   <SkipBack size={16} />
@@ -179,7 +187,11 @@ const UnifiedVideoPlayer: React.FC<UnifiedVideoPlayerProps> = ({
 
               {/* Play/Pause Button */}
               <button
-                onClick={togglePlay}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePlay();
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
                 className="glass-button glass-button-pulse w-12 h-12 rounded-full flex items-center justify-center text-white hover:text-blue-300 transition-colors glass-shimmer"
               >
                 {isPlaying ? (
@@ -192,7 +204,11 @@ const UnifiedVideoPlayer: React.FC<UnifiedVideoPlayerProps> = ({
               {/* Skip Forward */}
               {showAdvancedControls && (
                 <button
-                  onClick={() => skipTime(10)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    skipTime(10);
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
                   className="glass-button glass-button-pulse w-10 h-10 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-colors"
                 >
                   <SkipForward size={16} />
@@ -214,6 +230,7 @@ const UnifiedVideoPlayer: React.FC<UnifiedVideoPlayerProps> = ({
                     step="0.01"
                     value={volume}
                     onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                    onMouseDown={(e) => e.stopPropagation()}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
                 </div>
@@ -223,12 +240,20 @@ const UnifiedVideoPlayer: React.FC<UnifiedVideoPlayerProps> = ({
             {/* Right Controls */}
             <div className="flex items-center gap-2">
               {showAdvancedControls && (
-                <button className="glass-button glass-button-pulse w-8 h-8 rounded-lg flex items-center justify-center text-white/70 hover:text-white transition-colors">
+                <button 
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="glass-button glass-button-pulse w-8 h-8 rounded-lg flex items-center justify-center text-white/70 hover:text-white transition-colors"
+                >
                   <Settings size={16} />
                 </button>
               )}
               <button 
-                onClick={toggleFullscreen}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFullscreen();
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
                 className="glass-button glass-button-pulse w-8 h-8 rounded-lg flex items-center justify-center text-white/70 hover:text-white transition-colors"
               >
                 <Maximize size={16} />
@@ -240,10 +265,14 @@ const UnifiedVideoPlayer: React.FC<UnifiedVideoPlayerProps> = ({
 
       {/* Center Play Button (when paused) */}
       {!isPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
           <button
-            onClick={togglePlay}
-            className="center-play-button w-20 h-20 rounded-full flex items-center justify-center text-white hover:text-blue-300 transition-all duration-300"
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePlay();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="center-play-button w-20 h-20 rounded-full flex items-center justify-center text-white hover:text-blue-300 transition-all duration-300 pointer-events-auto"
           >
             <Play size={32} className="ml-2" />
           </button>

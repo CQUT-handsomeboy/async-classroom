@@ -31,17 +31,19 @@ const LiquidGlassVideoControls: React.FC<LiquidGlassVideoControlsProps> = ({
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className={`glass-video-control rounded-2xl p-4 ${className}`}>
+    <div className={`glass-video-control rounded-2xl p-4 ${className}`} style={{ pointerEvents: 'auto' }}>
       {/* Progress Bar */}
       <div className="mb-4">
         <div 
           className="glass-progress h-2 cursor-pointer relative"
-          onClick={(e) => {
+          onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+            e.stopPropagation();
             const rect = e.currentTarget.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const percentage = clickX / rect.width;
             onSeek(percentage * duration);
           }}
+          onMouseDown={(e) => e.stopPropagation()}
         >
           <div 
             className="glass-progress-fill h-full rounded-full transition-all duration-300 relative"
@@ -58,7 +60,11 @@ const LiquidGlassVideoControls: React.FC<LiquidGlassVideoControlsProps> = ({
         <div className="flex items-center gap-3">
           {/* Play/Pause Button */}
           <button
-            onClick={onPlayPause}
+            onClick={(e) => {
+              e.stopPropagation();
+              onPlayPause();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
             className="glass-button w-12 h-12 rounded-full flex items-center justify-center text-white hover:text-blue-300 transition-colors glass-shimmer"
           >
             {isPlaying ? (
@@ -82,7 +88,8 @@ const LiquidGlassVideoControls: React.FC<LiquidGlassVideoControlsProps> = ({
                 max="1"
                 step="0.01"
                 value={volume}
-                onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => onVolumeChange(parseFloat(e.target.value))}
+                onMouseDown={(e) => e.stopPropagation()}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
             </div>
@@ -91,10 +98,18 @@ const LiquidGlassVideoControls: React.FC<LiquidGlassVideoControlsProps> = ({
 
         {/* Right Controls */}
         <div className="flex items-center gap-2">
-          <button className="glass-button w-8 h-8 rounded-lg flex items-center justify-center text-white/70 hover:text-white transition-colors">
+          <button 
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="glass-button w-8 h-8 rounded-lg flex items-center justify-center text-white/70 hover:text-white transition-colors"
+          >
             <Settings size={16} />
           </button>
-          <button className="glass-button w-8 h-8 rounded-lg flex items-center justify-center text-white/70 hover:text-white transition-colors">
+          <button 
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="glass-button w-8 h-8 rounded-lg flex items-center justify-center text-white/70 hover:text-white transition-colors"
+          >
             <Maximize size={16} />
           </button>
         </div>
