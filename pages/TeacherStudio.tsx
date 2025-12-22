@@ -9,6 +9,7 @@ import Sidebar, { SidebarTab } from '../components/Sidebar';
 import SidePanel from '../components/SidePanel';
 import GitLensPanel from '../components/GitLensPanel';
 import ModePanel from '../components/ModePanel';
+import CompileToolbar from '../components/CompileToolbar';
 import { MOCK_MARKDOWN, COMMITS, CRASH_DATA } from '../constants';
 import { getPanelTitle } from '../utils';
 
@@ -21,6 +22,12 @@ const TeacherStudio: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SidebarTab>('git');
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [volume, setVolume] = useState(0.8);
+  
+  // Compile toolbar state
+  const [compileStatus, setCompileStatus] = useState<'idle' | 'compiling' | 'success' | 'error'>('idle');
+  const [isCompiling, setIsCompiling] = useState(false);
+  const [errorCount, setErrorCount] = useState(0);
+  const [warningCount, setWarningCount] = useState(0);
   
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
@@ -80,6 +87,36 @@ const TeacherStudio: React.FC = () => {
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
+  };
+
+  const handleCompile = async () => {
+    setIsCompiling(true);
+    setCompileStatus('compiling');
+    
+    // 模拟编译过程
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 模拟编译时间
+      
+      // 模拟编译结果
+      const hasErrors = Math.random() > 0.7; // 30% 概率有错误
+      const hasWarnings = Math.random() > 0.5; // 50% 概率有警告
+      
+      if (hasErrors) {
+        setCompileStatus('error');
+        setErrorCount(Math.floor(Math.random() * 5) + 1);
+        setWarningCount(hasWarnings ? Math.floor(Math.random() * 3) + 1 : 0);
+      } else {
+        setCompileStatus('success');
+        setErrorCount(0);
+        setWarningCount(hasWarnings ? Math.floor(Math.random() * 3) + 1 : 0);
+      }
+    } catch (error) {
+      setCompileStatus('error');
+      setErrorCount(1);
+      setWarningCount(0);
+    } finally {
+      setIsCompiling(false);
+    }
   };
 
   useEffect(() => {
@@ -143,23 +180,35 @@ const TeacherStudio: React.FC = () => {
             leftPanel={
               /* Left: Markdown Editor */
               <div className="h-full border-r border-slate-700 flex flex-col">
-                <Editor
-                  height="100%"
-                  defaultLanguage="markdown"
-                  theme="vs-dark"
-                  value={MOCK_MARKDOWN}
-                  onMount={handleEditorDidMount}
-                  options={{
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    lineNumbers: 'on',
-                    scrollBeyondLastLine: false,
-                    automaticLayout: true,
-                    fontFamily: "'Fira Code', monospace",
-                    wordWrap: 'on',
-                    renderLineHighlight: 'none' // Disable default highlight to use our custom one
-                  }}
+                {/* Compile Toolbar */}
+                <CompileToolbar
+                  onCompile={handleCompile}
+                  isCompiling={isCompiling}
+                  compileStatus={compileStatus}
+                  errorCount={errorCount}
+                  warningCount={warningCount}
                 />
+                
+                {/* Monaco Editor */}
+                <div className="flex-1">
+                  <Editor
+                    height="100%"
+                    defaultLanguage="markdown"
+                    theme="vs-dark"
+                    value={MOCK_MARKDOWN}
+                    onMount={handleEditorDidMount}
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 14,
+                      lineNumbers: 'on',
+                      scrollBeyondLastLine: false,
+                      automaticLayout: true,
+                      fontFamily: "'Fira Code', monospace",
+                      wordWrap: 'on',
+                      renderLineHighlight: 'none' // Disable default highlight to use our custom one
+                    }}
+                  />
+                </div>
               </div>
             }
             rightPanel={
