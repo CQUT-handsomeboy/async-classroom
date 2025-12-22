@@ -8,7 +8,6 @@ import ResizableSplitter from '../components/ResizableSplitter';
 import Sidebar, { SidebarTab } from '../components/Sidebar';
 import SidePanel from '../components/SidePanel';
 import GitLensPanel from '../components/GitLensPanel';
-import ModePanel from '../components/ModePanel';
 import CompileToolbar from '../components/CompileToolbar';
 import { MOCK_MARKDOWN, COMMITS, CRASH_DATA } from '../constants';
 import { getPanelTitle } from '../utils';
@@ -182,13 +181,13 @@ const TeacherStudio: React.FC = () => {
         userRole="teacher"
       />
 
-      {/* Side Panel */}
-      {isPanelOpen && (
+      {/* Side Panel - 只在git模式下显示 */}
+      {isPanelOpen && activeTab === 'git' && (
         <SidePanel
           activeTab={activeTab}
           isOpen={isPanelOpen}
           onClose={() => setIsPanelOpen(false)}
-          title={getPanelTitle(activeTab === 'edit' || activeTab === 'debug' ? currentMode : activeTab, 'teacher')}
+          title={getPanelTitle(activeTab, 'teacher')}
         >
           {renderPanelContent()}
         </SidePanel>
@@ -198,70 +197,148 @@ const TeacherStudio: React.FC = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Main Content Grid */}
         <div className="flex-1 flex overflow-hidden">
-          <ResizableSplitter
-            defaultLeftWidth={35}
-            minLeftWidth={25}
-            maxLeftWidth={60}
-            leftPanel={
-              /* Left: Markdown Editor */
-              <div className="h-full border-r border-slate-700 flex flex-col">
-                {/* Compile Toolbar */}
-                <CompileToolbar
-                  onCompile={handleCompile}
-                  isCompiling={isCompiling}
-                  compileStatus={compileStatus}
-                  errorCount={errorCount}
-                  warningCount={warningCount}
-                />
-                
-                {/* Monaco Editor */}
-                <div className="flex-1">
-                  <Editor
-                    height="100%"
-                    defaultLanguage="markdown"
-                    theme="vs-dark"
-                    value={MOCK_MARKDOWN}
-                    onMount={handleEditorDidMount}
-                    options={{
-                      minimap: { enabled: false },
-                      fontSize: 14,
-                      lineNumbers: 'on',
-                      scrollBeyondLastLine: false,
-                      automaticLayout: true,
-                      fontFamily: "'Fira Code', monospace",
-                      wordWrap: 'on',
-                      renderLineHighlight: 'none' // Disable default highlight to use our custom one
-                    }}
-                  />
-                </div>
-              </div>
-            }
-            rightPanel={
-              /* Right: Video Preview */
-              <div className="h-full bg-black relative flex flex-col">
-                {/* Video Container */}
-                <div className="flex-1 relative">
-                  <UnifiedVideoPlayer 
-                    src="https://media.w3.org/2010/05/sintel/trailer.mp4"
-                    currentTime={currentTime}
-                    onTimeUpdate={setCurrentTime}
-                    isPlaying={isPlaying}
-                    onPlayPause={setIsPlaying}
-                    volume={volume}
-                    onVolumeChange={setVolume}
-                    className="w-full h-full"
-                    showAdvancedControls={true}
-                  />
-                  
-                  {/* Status Indicator */}
-                  <div className="absolute top-4 right-4 liquid-glass-dark text-white px-3 py-1 rounded-lg text-xs flex items-center gap-2">
-                    <PlayCircle size={14} className="text-green-400"/>
-                    实时预览
+          {(currentMode === 'edit' || currentMode === 'debug') ? (
+            /* 编辑模式和调试模式：左侧视频，右侧功能区 */
+            <ResizableSplitter
+              defaultLeftWidth={60}
+              minLeftWidth={40}
+              maxLeftWidth={75}
+              leftPanel={
+                /* Left: Video */
+                <div className="h-full bg-black relative flex flex-col">
+                  <div className="flex-1 relative">
+                    <UnifiedVideoPlayer 
+                      src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                      currentTime={currentTime}
+                      onTimeUpdate={setCurrentTime}
+                      isPlaying={isPlaying}
+                      onPlayPause={setIsPlaying}
+                      volume={volume}
+                      onVolumeChange={setVolume}
+                      className="w-full h-full"
+                      showAdvancedControls={true}
+                    />
+                    
+                    {/* Status Indicator */}
+                    <div className="absolute top-4 right-4 liquid-glass-dark text-white px-3 py-1 rounded-lg text-xs flex items-center gap-2">
+                      <PlayCircle size={14} className="text-green-400"/>
+                      {currentMode === 'edit' ? '编辑预览' : '调试模式'}
+                    </div>
                   </div>
                 </div>
-              </div>
-            }
-          />
+              }
+              rightPanel={
+                /* Right: 功能区 */
+                <div className="h-full border-l border-slate-700 flex flex-col bg-surface">
+                  {currentMode === 'edit' ? (
+                    /* 编辑模式功能区 */
+                    <div className="h-full flex flex-col">
+                      {/* Compile Toolbar */}
+                      <CompileToolbar
+                        onCompile={handleCompile}
+                        isCompiling={isCompiling}
+                        compileStatus={compileStatus}
+                        errorCount={errorCount}
+                        warningCount={warningCount}
+                      />
+                      
+                      {/* Monaco Editor */}
+                      <div className="flex-1">
+                        <Editor
+                          height="100%"
+                          defaultLanguage="markdown"
+                          theme="vs-dark"
+                          value={MOCK_MARKDOWN}
+                          onMount={handleEditorDidMount}
+                          options={{
+                            minimap: { enabled: false },
+                            fontSize: 14,
+                            lineNumbers: 'on',
+                            scrollBeyondLastLine: false,
+                            automaticLayout: true,
+                            fontFamily: "'Fira Code', monospace",
+                            wordWrap: 'on',
+                            renderLineHighlight: 'none'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    /* 调试模式功能区 */
+                    <div className="h-full flex flex-col p-6">
+                      <h3 className="text-lg font-semibold text-slate-200 mb-4">调试模式</h3>
+                      <p className="text-slate-400">教师调试面板开发中...</p>
+                    </div>
+                  )}
+                </div>
+              }
+            />
+          ) : (
+            /* 其他模式保持原有布局 */
+            <ResizableSplitter
+              defaultLeftWidth={35}
+              minLeftWidth={25}
+              maxLeftWidth={60}
+              leftPanel={
+                /* Left: Markdown Editor */
+                <div className="h-full border-r border-slate-700 flex flex-col">
+                  {/* Compile Toolbar */}
+                  <CompileToolbar
+                    onCompile={handleCompile}
+                    isCompiling={isCompiling}
+                    compileStatus={compileStatus}
+                    errorCount={errorCount}
+                    warningCount={warningCount}
+                  />
+                  
+                  {/* Monaco Editor */}
+                  <div className="flex-1">
+                    <Editor
+                      height="100%"
+                      defaultLanguage="markdown"
+                      theme="vs-dark"
+                      value={MOCK_MARKDOWN}
+                      onMount={handleEditorDidMount}
+                      options={{
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        lineNumbers: 'on',
+                        scrollBeyondLastLine: false,
+                        automaticLayout: true,
+                        fontFamily: "'Fira Code', monospace",
+                        wordWrap: 'on',
+                        renderLineHighlight: 'none'
+                      }}
+                    />
+                  </div>
+                </div>
+              }
+              rightPanel={
+                /* Right: Video Preview */
+                <div className="h-full bg-black relative flex flex-col">
+                  <div className="flex-1 relative">
+                    <UnifiedVideoPlayer 
+                      src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                      currentTime={currentTime}
+                      onTimeUpdate={setCurrentTime}
+                      isPlaying={isPlaying}
+                      onPlayPause={setIsPlaying}
+                      volume={volume}
+                      onVolumeChange={setVolume}
+                      className="w-full h-full"
+                      showAdvancedControls={true}
+                    />
+                    
+                    {/* Status Indicator */}
+                    <div className="absolute top-4 right-4 liquid-glass-dark text-white px-3 py-1 rounded-lg text-xs flex items-center gap-2">
+                      <PlayCircle size={14} className="text-green-400"/>
+                      实时预览
+                    </div>
+                  </div>
+                </div>
+              }
+            />
+          )}
         </div>
       </div>
     </div>

@@ -1,5 +1,4 @@
 import React from 'react';
-import { X } from 'lucide-react';
 import { SidebarTab } from './Sidebar';
 
 interface SidePanelProps {
@@ -11,11 +10,8 @@ interface SidePanelProps {
 }
 
 const SidePanel: React.FC<SidePanelProps> = ({ 
-  activeTab, 
   isOpen, 
-  onClose, 
-  children, 
-  title 
+  children
 }) => {
   if (!isOpen) return null;
 

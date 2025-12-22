@@ -10,7 +10,6 @@ import ResizableSplitter from '../components/ResizableSplitter';
 import Sidebar, { SidebarTab } from '../components/Sidebar';
 import SidePanel from '../components/SidePanel';
 import GitLensPanel from '../components/GitLensPanel';
-import ModePanel from '../components/ModePanel';
 import { COURSES, MOCK_MARKDOWN, COMMITS, TRANSCRIPT, CRASH_DATA } from '../constants';
 import { getPanelTitle } from '../utils';
 
@@ -170,13 +169,13 @@ const StudentClassroom: React.FC = () => {
         userRole="student"
       />
 
-      {/* Side Panel */}
-      {isPanelOpen && (
+      {/* Side Panel - 只在git模式下显示 */}
+      {isPanelOpen && activeTab === 'git' && (
         <SidePanel
           activeTab={activeTab}
           isOpen={isPanelOpen}
           onClose={() => setIsPanelOpen(false)}
-          title={getPanelTitle(activeTab === 'edit' || activeTab === 'debug' ? currentMode : activeTab, 'student')}
+          title={getPanelTitle(activeTab, 'student')}
         >
           {renderPanelContent()}
         </SidePanel>
@@ -196,86 +195,179 @@ const StudentClassroom: React.FC = () => {
 
         {/* Content Layout */}
         <div className="flex-1 flex overflow-hidden">
-          <ResizableSplitter
-            defaultLeftWidth={50}
-            minLeftWidth={30}
-            maxLeftWidth={70}
-            leftPanel={
-              /* Left: Video */
-              <div className="h-full bg-black flex flex-col justify-center relative">
-                <UnifiedVideoPlayer
-                  src="https://media.w3.org/2010/05/sintel/trailer.mp4"
-                  currentTime={currentTime}
-                  onTimeUpdate={setCurrentTime}
-                  isPlaying={isPlaying}
-                  onPlayPause={setIsPlaying}
-                  volume={volume}
-                  onVolumeChange={setVolume}
-                  className="w-full h-full"
-                  showAdvancedControls={true}
-                  onSeek={(time: number) => {
-                    setCurrentTime(time);
-                    setIsPlaying(false);
-                  }}
-                />
-              </div>
-            }
-            rightPanel={
-              /* Right: Transcript & Debug Toolbar */
-              <div className="h-full w-full flex flex-col bg-surface overflow-hidden border-l border-slate-700">
-                
-                {/* Transcript List */}
-                <div className="flex-1 w-full overflow-y-auto p-4 relative" ref={scrollContainerRef}>
-                   <div className="sticky top-0 bg-surface/95 backdrop-blur z-10 pb-3 mb-4 border-b border-slate-700/50">
-                     {/* Debug Toolbar */}
-                     <div className="flex justify-center">
-                       <DebugToolbar
-                         isPlaying={isPlaying}
-                         onPlayPause={setIsPlaying}
-                         onStop={handleStop}
-                         onStepForward={handleStepForward}
-                         onStepBack={handleStepBack}
-                         onBreakpoint={handleBreakpoint}
-                         onStepIn={handleStepIn}
-                         onStepOut={handleStepOut}
-                         onStepOver={handleStepOver}
-                         onRestart={handleRestart}
-                       />
-                     </div>
-                   </div>
-                   
-                   <div className="space-y-4 w-full">
-                     {TRANSCRIPT.map((line) => {
-                       const isActive = currentTime >= line.startTime && currentTime < line.endTime;
-                       return (
-                         <div 
-                          key={line.id} 
-                          onClick={() => {
-                            setCurrentTime(line.startTime);
-                            setIsPlaying(true);
-                          }}
-                          className={`p-3 rounded-lg cursor-pointer transition-all duration-300 w-full ${
-                            isActive 
-                              ? 'bg-primary/20 border border-primary/50 text-white shadow-lg shadow-primary/10 scale-105' 
-                              : 'hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 border border-transparent'
-                          }`}
-                         >
-                           <div className="flex justify-between text-[10px] mb-1 opacity-50 font-mono">
-                              <span>{Math.floor(line.startTime / 60)}:{Math.floor(line.startTime % 60).toString().padStart(2, '0')}</span>
-                           </div>
-                           <MathRenderer 
-                             text={line.text} 
-                             className="text-sm leading-relaxed" 
-                           />
-                         </div>
-                       );
-                     })}
-                   </div>
+          {(currentMode === 'edit' || currentMode === 'debug') ? (
+            /* 编辑模式和调试模式：左侧视频，右侧功能区 */
+            <ResizableSplitter
+              defaultLeftWidth={60}
+              minLeftWidth={40}
+              maxLeftWidth={75}
+              leftPanel={
+                /* Left: Video */
+                <div className="h-full bg-black flex flex-col justify-center relative">
+                  <UnifiedVideoPlayer
+                    src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                    currentTime={currentTime}
+                    onTimeUpdate={setCurrentTime}
+                    isPlaying={isPlaying}
+                    onPlayPause={setIsPlaying}
+                    volume={volume}
+                    onVolumeChange={setVolume}
+                    className="w-full h-full"
+                    showAdvancedControls={true}
+                    onSeek={(time: number) => {
+                      setCurrentTime(time);
+                      setIsPlaying(false);
+                    }}
+                  />
                 </div>
+              }
+              rightPanel={
+                /* Right: 功能区 */
+                <div className="h-full w-full flex flex-col bg-surface overflow-hidden border-l border-slate-700">
+                  {currentMode === 'edit' ? (
+                    /* 编辑模式功能区 */
+                    <div className="h-full flex flex-col p-6">
+                      <h3 className="text-lg font-semibold text-slate-200 mb-4">编辑模式</h3>
+                      <p className="text-slate-400">学生编辑面板开发中...</p>
+                    </div>
+                  ) : (
+                    /* 调试模式功能区 - Transcript & Debug Toolbar */
+                    <>
+                      <div className="flex-1 w-full overflow-y-auto p-4 relative" ref={scrollContainerRef}>
+                        <div className="sticky top-0 bg-surface/95 backdrop-blur z-10 pb-3 mb-4 border-b border-slate-700/50">
+                          {/* Debug Toolbar */}
+                          <div className="flex justify-center">
+                            <DebugToolbar
+                              isPlaying={isPlaying}
+                              onPlayPause={setIsPlaying}
+                              onStop={handleStop}
+                              onStepForward={handleStepForward}
+                              onStepBack={handleStepBack}
+                              onBreakpoint={handleBreakpoint}
+                              onStepIn={handleStepIn}
+                              onStepOut={handleStepOut}
+                              onStepOver={handleStepOver}
+                              onRestart={handleRestart}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4 w-full">
+                          {TRANSCRIPT.map((line) => {
+                            const isActive = currentTime >= line.startTime && currentTime < line.endTime;
+                            return (
+                              <div 
+                               key={line.id} 
+                               onClick={() => {
+                                 setCurrentTime(line.startTime);
+                                 setIsPlaying(true);
+                               }}
+                               className={`p-3 rounded-lg cursor-pointer transition-all duration-300 w-full ${
+                                 isActive 
+                                   ? 'bg-primary/20 border border-primary/50 text-white shadow-lg shadow-primary/10 scale-105' 
+                                   : 'hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 border border-transparent'
+                               }`}
+                              >
+                                <div className="flex justify-between text-[10px] mb-1 opacity-50 font-mono">
+                                   <span>{Math.floor(line.startTime / 60)}:{Math.floor(line.startTime % 60).toString().padStart(2, '0')}</span>
+                                </div>
+                                <MathRenderer 
+                                  text={line.text} 
+                                  className="text-sm leading-relaxed" 
+                                />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              }
+            />
+          ) : (
+            /* 其他模式保持原有布局 */
+            <ResizableSplitter
+              defaultLeftWidth={50}
+              minLeftWidth={30}
+              maxLeftWidth={70}
+              leftPanel={
+                /* Left: Video */
+                <div className="h-full bg-black flex flex-col justify-center relative">
+                  <UnifiedVideoPlayer
+                    src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                    currentTime={currentTime}
+                    onTimeUpdate={setCurrentTime}
+                    isPlaying={isPlaying}
+                    onPlayPause={setIsPlaying}
+                    volume={volume}
+                    onVolumeChange={setVolume}
+                    className="w-full h-full"
+                    showAdvancedControls={true}
+                    onSeek={(time: number) => {
+                      setCurrentTime(time);
+                      setIsPlaying(false);
+                    }}
+                  />
+                </div>
+              }
+              rightPanel={
+                /* Right: Transcript & Debug Toolbar */
+                <div className="h-full w-full flex flex-col bg-surface overflow-hidden border-l border-slate-700">
+                  
+                  {/* Transcript List */}
+                  <div className="flex-1 w-full overflow-y-auto p-4 relative" ref={scrollContainerRef}>
+                     <div className="sticky top-0 bg-surface/95 backdrop-blur z-10 pb-3 mb-4 border-b border-slate-700/50">
+                       {/* Debug Toolbar */}
+                       <div className="flex justify-center">
+                         <DebugToolbar
+                           isPlaying={isPlaying}
+                           onPlayPause={setIsPlaying}
+                           onStop={handleStop}
+                           onStepForward={handleStepForward}
+                           onStepBack={handleStepBack}
+                           onBreakpoint={handleBreakpoint}
+                           onStepIn={handleStepIn}
+                           onStepOut={handleStepOut}
+                           onStepOver={handleStepOver}
+                           onRestart={handleRestart}
+                         />
+                       </div>
+                     </div>
+                     
+                     <div className="space-y-4 w-full">
+                       {TRANSCRIPT.map((line) => {
+                         const isActive = currentTime >= line.startTime && currentTime < line.endTime;
+                         return (
+                           <div 
+                            key={line.id} 
+                            onClick={() => {
+                              setCurrentTime(line.startTime);
+                              setIsPlaying(true);
+                            }}
+                            className={`p-3 rounded-lg cursor-pointer transition-all duration-300 w-full ${
+                              isActive 
+                                ? 'bg-primary/20 border border-primary/50 text-white shadow-lg shadow-primary/10 scale-105' 
+                                : 'hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 border border-transparent'
+                            }`}
+                           >
+                             <div className="flex justify-between text-[10px] mb-1 opacity-50 font-mono">
+                                <span>{Math.floor(line.startTime / 60)}:{Math.floor(line.startTime % 60).toString().padStart(2, '0')}</span>
+                             </div>
+                             <MathRenderer 
+                               text={line.text} 
+                               className="text-sm leading-relaxed" 
+                             />
+                           </div>
+                         );
+                       })}
+                     </div>
+                  </div>
 
-              </div>
-            }
-          />
+                </div>
+              }
+            />
+          )}
         </div>
       </div>
     </div>

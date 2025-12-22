@@ -1,8 +1,6 @@
 import React from 'react';
 import { 
   GitBranch, 
-  MessageSquare, 
-  Settings, 
   BookOpen,
   Edit3,
   Bug
@@ -36,18 +34,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, userRole = 't
       label: '调试模式',
       tooltip: '调试和学习模式'
     },
-    {
-      id: 'chat' as SidebarTab,
-      icon: MessageSquare,
-      label: 'AI',
-      tooltip: 'AI 聊天助手'
-    },
-    {
-      id: 'settings' as SidebarTab,
-      icon: Settings,
-      label: '设置',
-      tooltip: '应用设置'
-    }
   ];
 
   return (

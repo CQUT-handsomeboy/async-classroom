@@ -238,8 +238,8 @@ const UnifiedWorkspace: React.FC = () => {
         onTabChange={handleTabChange}
       />
 
-      {/* Side Panel */}
-      {isPanelOpen && (
+      {/* Side Panel - 只在git模式下显示 */}
+      {isPanelOpen && activeTab === 'git' && (
         <SidePanel
           activeTab={activeTab}
           isOpen={isPanelOpen}
@@ -274,73 +274,14 @@ const UnifiedWorkspace: React.FC = () => {
 
         {/* Content Layout */}
         <div className="flex-1 flex overflow-hidden">
-          {currentMode === 'edit' ? (
-            /* Edit Mode Layout */
+          {(currentMode === 'edit' || currentMode === 'debug') ? (
+            /* 编辑模式和调试模式：左侧视频，右侧功能区 */
             <ResizableSplitter
-              defaultLeftWidth={35}
-              minLeftWidth={25}
-              maxLeftWidth={60}
+              defaultLeftWidth={60}
+              minLeftWidth={40}
+              maxLeftWidth={75}
               leftPanel={
-                <div className="h-full border-r border-slate-700 flex flex-col">
-                  <CompileToolbar
-                    onCompile={handleCompile}
-                    isCompiling={isCompiling}
-                    compileStatus={compileStatus}
-                    errorCount={errorCount}
-                    warningCount={warningCount}
-                  />
-                  
-                  <div className="flex-1">
-                    <Editor
-                      height="100%"
-                      defaultLanguage="markdown"
-                      theme="vs-dark"
-                      value={MOCK_MARKDOWN}
-                      onMount={handleEditorDidMount}
-                      options={{
-                        minimap: { enabled: false },
-                        fontSize: 14,
-                        lineNumbers: 'on',
-                        scrollBeyondLastLine: false,
-                        automaticLayout: true,
-                        fontFamily: "'Fira Code', monospace",
-                        wordWrap: 'on',
-                        renderLineHighlight: 'none'
-                      }}
-                    />
-                  </div>
-                </div>
-              }
-              rightPanel={
-                <div className="h-full bg-black relative flex flex-col">
-                  <div className="flex-1 relative">
-                    <UnifiedVideoPlayer 
-                      src="https://media.w3.org/2010/05/sintel/trailer.mp4"
-                      currentTime={currentTime}
-                      onTimeUpdate={setCurrentTime}
-                      isPlaying={isPlaying}
-                      onPlayPause={setIsPlaying}
-                      volume={volume}
-                      onVolumeChange={setVolume}
-                      className="w-full h-full"
-                      showAdvancedControls={true}
-                    />
-                    
-                    <div className="absolute top-4 right-4 liquid-glass-dark text-white px-3 py-1 rounded-lg text-xs flex items-center gap-2">
-                      <PlayCircle size={14} className="text-green-400"/>
-                      实时预览
-                    </div>
-                  </div>
-                </div>
-              }
-            />
-          ) : (
-            /* Debug Mode Layout */
-            <ResizableSplitter
-              defaultLeftWidth={50}
-              minLeftWidth={30}
-              maxLeftWidth={70}
-              leftPanel={
+                /* Left: Video */
                 <div className="h-full bg-black flex flex-col justify-center relative">
                   <UnifiedVideoPlayer
                     src="https://media.w3.org/2010/05/sintel/trailer.mp4"
@@ -360,56 +301,230 @@ const UnifiedWorkspace: React.FC = () => {
                 </div>
               }
               rightPanel={
+                /* Right: 功能区 */
                 <div className="h-full w-full flex flex-col bg-surface overflow-hidden border-l border-slate-700">
-                  <div className="flex-1 w-full overflow-y-auto p-4 relative" ref={scrollContainerRef}>
-                    <div className="sticky top-0 bg-surface/95 backdrop-blur z-10 pb-3 mb-4 border-b border-slate-700/50">
-                      <div className="flex justify-center">
-                        <DebugToolbar
-                          isPlaying={isPlaying}
-                          onPlayPause={setIsPlaying}
-                          onStop={handleStop}
-                          onStepForward={handleStepForward}
-                          onStepBack={handleStepBack}
-                          onBreakpoint={handleBreakpoint}
-                          onStepIn={handleStepIn}
-                          onStepOut={handleStepOut}
-                          onStepOver={handleStepOver}
-                          onRestart={handleRestart}
+                  {currentMode === 'edit' ? (
+                    /* 编辑模式功能区 */
+                    <div className="h-full flex flex-col">
+                      <CompileToolbar
+                        onCompile={handleCompile}
+                        isCompiling={isCompiling}
+                        compileStatus={compileStatus}
+                        errorCount={errorCount}
+                        warningCount={warningCount}
+                      />
+                      
+                      <div className="flex-1">
+                        <Editor
+                          height="100%"
+                          defaultLanguage="markdown"
+                          theme="vs-dark"
+                          value={MOCK_MARKDOWN}
+                          onMount={handleEditorDidMount}
+                          options={{
+                            minimap: { enabled: false },
+                            fontSize: 14,
+                            lineNumbers: 'on',
+                            scrollBeyondLastLine: false,
+                            automaticLayout: true,
+                            fontFamily: "'Fira Code', monospace",
+                            wordWrap: 'on',
+                            renderLineHighlight: 'none'
+                          }}
                         />
                       </div>
                     </div>
-                    
-                    <div className="space-y-4 w-full">
-                      {TRANSCRIPT.map((line) => {
-                        const isActive = currentTime >= line.startTime && currentTime < line.endTime;
-                        return (
-                          <div 
-                            key={line.id} 
-                            onClick={() => {
-                              setCurrentTime(line.startTime);
-                              setIsPlaying(true);
-                            }}
-                            className={`p-3 rounded-lg cursor-pointer transition-all duration-300 w-full ${
-                              isActive 
-                                ? 'bg-primary/20 border border-primary/50 text-white shadow-lg shadow-primary/10 scale-105' 
-                                : 'hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 border border-transparent'
-                            }`}
-                          >
-                            <div className="flex justify-between text-[10px] mb-1 opacity-50 font-mono">
-                              <span>{Math.floor(line.startTime / 60)}:{Math.floor(line.startTime % 60).toString().padStart(2, '0')}</span>
+                  ) : (
+                    /* 调试模式功能区 */
+                    <div className="flex-1 w-full overflow-y-auto p-4 relative" ref={scrollContainerRef}>
+                      <div className="sticky top-0 bg-surface/95 backdrop-blur z-10 pb-3 mb-4 border-b border-slate-700/50">
+                        <div className="flex justify-center">
+                          <DebugToolbar
+                            isPlaying={isPlaying}
+                            onPlayPause={setIsPlaying}
+                            onStop={handleStop}
+                            onStepForward={handleStepForward}
+                            onStepBack={handleStepBack}
+                            onBreakpoint={handleBreakpoint}
+                            onStepIn={handleStepIn}
+                            onStepOut={handleStepOut}
+                            onStepOver={handleStepOver}
+                            onRestart={handleRestart}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4 w-full">
+                        {TRANSCRIPT.map((line) => {
+                          const isActive = currentTime >= line.startTime && currentTime < line.endTime;
+                          return (
+                            <div 
+                              key={line.id} 
+                              onClick={() => {
+                                setCurrentTime(line.startTime);
+                                setIsPlaying(true);
+                              }}
+                              className={`p-3 rounded-lg cursor-pointer transition-all duration-300 w-full ${
+                                isActive 
+                                  ? 'bg-primary/20 border border-primary/50 text-white shadow-lg shadow-primary/10 scale-105' 
+                                  : 'hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 border border-transparent'
+                              }`}
+                            >
+                              <div className="flex justify-between text-[10px] mb-1 opacity-50 font-mono">
+                                <span>{Math.floor(line.startTime / 60)}:{Math.floor(line.startTime % 60).toString().padStart(2, '0')}</span>
+                              </div>
+                              <MathRenderer 
+                                text={line.text} 
+                                className="text-sm leading-relaxed" 
+                              />
                             </div>
-                            <MathRenderer 
-                              text={line.text} 
-                              className="text-sm leading-relaxed" 
-                            />
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               }
             />
+          ) : (
+            /* 其他模式保持原有布局 */
+            currentMode === 'edit' ? (
+              /* Edit Mode Layout */
+              <ResizableSplitter
+                defaultLeftWidth={35}
+                minLeftWidth={25}
+                maxLeftWidth={60}
+                leftPanel={
+                  <div className="h-full border-r border-slate-700 flex flex-col">
+                    <CompileToolbar
+                      onCompile={handleCompile}
+                      isCompiling={isCompiling}
+                      compileStatus={compileStatus}
+                      errorCount={errorCount}
+                      warningCount={warningCount}
+                    />
+                    
+                    <div className="flex-1">
+                      <Editor
+                        height="100%"
+                        defaultLanguage="markdown"
+                        theme="vs-dark"
+                        value={MOCK_MARKDOWN}
+                        onMount={handleEditorDidMount}
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 14,
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          fontFamily: "'Fira Code', monospace",
+                          wordWrap: 'on',
+                          renderLineHighlight: 'none'
+                        }}
+                      />
+                    </div>
+                  </div>
+                }
+                rightPanel={
+                  <div className="h-full bg-black relative flex flex-col">
+                    <div className="flex-1 relative">
+                      <UnifiedVideoPlayer 
+                        src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                        currentTime={currentTime}
+                        onTimeUpdate={setCurrentTime}
+                        isPlaying={isPlaying}
+                        onPlayPause={setIsPlaying}
+                        volume={volume}
+                        onVolumeChange={setVolume}
+                        className="w-full h-full"
+                        showAdvancedControls={true}
+                      />
+                      
+                      <div className="absolute top-4 right-4 liquid-glass-dark text-white px-3 py-1 rounded-lg text-xs flex items-center gap-2">
+                        <PlayCircle size={14} className="text-green-400"/>
+                        实时预览
+                      </div>
+                    </div>
+                  </div>
+                }
+              />
+            ) : (
+              /* Debug Mode Layout */
+              <ResizableSplitter
+                defaultLeftWidth={50}
+                minLeftWidth={30}
+                maxLeftWidth={70}
+                leftPanel={
+                  <div className="h-full bg-black flex flex-col justify-center relative">
+                    <UnifiedVideoPlayer
+                      src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                      currentTime={currentTime}
+                      onTimeUpdate={setCurrentTime}
+                      isPlaying={isPlaying}
+                      onPlayPause={setIsPlaying}
+                      volume={volume}
+                      onVolumeChange={setVolume}
+                      className="w-full h-full"
+                      showAdvancedControls={true}
+                      onSeek={(time: number) => {
+                        setCurrentTime(time);
+                        setIsPlaying(false);
+                      }}
+                    />
+                  </div>
+                }
+                rightPanel={
+                  <div className="h-full w-full flex flex-col bg-surface overflow-hidden border-l border-slate-700">
+                    <div className="flex-1 w-full overflow-y-auto p-4 relative" ref={scrollContainerRef}>
+                      <div className="sticky top-0 bg-surface/95 backdrop-blur z-10 pb-3 mb-4 border-b border-slate-700/50">
+                        <div className="flex justify-center">
+                          <DebugToolbar
+                            isPlaying={isPlaying}
+                            onPlayPause={setIsPlaying}
+                            onStop={handleStop}
+                            onStepForward={handleStepForward}
+                            onStepBack={handleStepBack}
+                            onBreakpoint={handleBreakpoint}
+                            onStepIn={handleStepIn}
+                            onStepOut={handleStepOut}
+                            onStepOver={handleStepOver}
+                            onRestart={handleRestart}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4 w-full">
+                        {TRANSCRIPT.map((line) => {
+                          const isActive = currentTime >= line.startTime && currentTime < line.endTime;
+                          return (
+                            <div 
+                              key={line.id} 
+                              onClick={() => {
+                                setCurrentTime(line.startTime);
+                                setIsPlaying(true);
+                              }}
+                              className={`p-3 rounded-lg cursor-pointer transition-all duration-300 w-full ${
+                                isActive 
+                                  ? 'bg-primary/20 border border-primary/50 text-white shadow-lg shadow-primary/10 scale-105' 
+                                  : 'hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 border border-transparent'
+                              }`}
+                            >
+                              <div className="flex justify-between text-[10px] mb-1 opacity-50 font-mono">
+                                <span>{Math.floor(line.startTime / 60)}:{Math.floor(line.startTime % 60).toString().padStart(2, '0')}</span>
+                              </div>
+                              <MathRenderer 
+                                text={line.text} 
+                                className="text-sm leading-relaxed" 
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                }
+              />
+            )
           )}
         </div>
       </div>
