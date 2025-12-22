@@ -19,7 +19,7 @@ const ModePanel: React.FC<ModePanelProps> = ({ currentMode, onModeChange }) => {
   const modes = [
     {
       id: 'teacher' as const,
-      title: '教师工作室',
+      title: '编辑模式',
       subtitle: 'Teacher Studio',
       description: '创建和编辑课程内容，分析学生学习数据',
       icon: User,
@@ -33,7 +33,7 @@ const ModePanel: React.FC<ModePanelProps> = ({ currentMode, onModeChange }) => {
     },
     {
       id: 'student' as const,
-      title: '学生教室',
+      title: '调试模式',
       subtitle: 'Student Classroom',
       description: '观看课程视频，与AI助手互动学习',
       icon: GraduationCap,

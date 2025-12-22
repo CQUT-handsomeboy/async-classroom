@@ -76,7 +76,11 @@ export const COMMITS: Commit[] = [
   { id: 'c1', message: 'feat: Add tangent line visualization', author: 'Teacher', date: '2023-10-25', isCurrent: true, branch: 'main' },
   { id: 'c2', message: 'fix: Adjust axis range', author: 'Student_01', date: '2023-10-24', isCurrent: false, branch: 'student-fork' },
   { id: 'c3', message: 'docs: Update explanation text', author: 'Teacher', date: '2023-10-23', isCurrent: false, branch: 'main' },
-  { id: 'c4', message: 'init: Initial project setup', author: 'Teacher', date: '2023-10-20', isCurrent: false, branch: 'main' },
+  { id: 'c4', message: 'feat: Add interactive controls', author: 'Student_02', date: '2023-10-22', isCurrent: false, branch: 'feature/controls' },
+  { id: 'c5', message: 'fix: Animation timing issues', author: 'Teacher', date: '2023-10-21', isCurrent: false, branch: 'main' },
+  { id: 'c6', message: 'style: Improve UI colors', author: 'Student_01', date: '2023-10-21', isCurrent: false, branch: 'student-fork' },
+  { id: 'c7', message: 'feat: Add math formula renderer', author: 'Student_02', date: '2023-10-20', isCurrent: false, branch: 'feature/controls' },
+  { id: 'c8', message: 'init: Initial project setup', author: 'Teacher', date: '2023-10-20', isCurrent: false, branch: 'main' },
 ];
 
 export const CRASH_DATA: CrashPoint[] = [

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@gitgraph/react": "^1.6.0",
     "@google/genai": "^1.30.0",
     "@monaco-editor/react": "^4.7.0",
     "katex": "^0.16.27",

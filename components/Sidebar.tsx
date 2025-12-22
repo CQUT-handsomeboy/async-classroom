@@ -1,13 +1,11 @@
 import React from 'react';
 import { 
   GitBranch, 
-  Users, 
   MessageSquare, 
   Settings, 
   BookOpen,
   GraduationCap,
-  User,
-  AlertTriangle
+  User
 } from 'lucide-react';
 
 export type SidebarTab = 'git' | 'mode' | 'chat' | 'settings' | 'crash';
@@ -27,12 +25,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, currentMode }
       tooltip: 'Git 历史和分支管理'
     },
     {
-      id: 'crash' as SidebarTab,
-      icon: AlertTriangle,
-      label: '思维断点',
-      tooltip: '学生思维断点分布分析'
-    },
-    {
       id: 'mode' as SidebarTab,
       icon: currentMode === 'teacher' ? User : GraduationCap,
       label: '模式切换',
@@ -41,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, currentMode }
     {
       id: 'chat' as SidebarTab,
       icon: MessageSquare,
-      label: 'AI 助手',
+      label: 'AI',
       tooltip: 'AI 聊天助手'
     },
     {
@@ -53,14 +45,14 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, currentMode }
   ];
 
   return (
-    <div className="w-12 bg-slate-900/80 backdrop-blur-md border-r border-slate-700/50 flex flex-col items-center py-4 gap-2">
+    <div className="w-16 liquid-glass-dark border-r border-white/10 flex flex-col items-center py-6 gap-4">
       {/* Logo/Brand */}
-      <div className="mb-4 p-2 rounded-lg bg-primary/10 border border-primary/20">
-        <BookOpen size={20} className="text-primary" />
+      <div className="mb-6 p-3 rounded-xl liquid-glass-primary glass-hover">
+        <BookOpen size={24} className="text-primary" />
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex flex-col gap-1 flex-1">
+      <div className="flex flex-col gap-3 flex-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -70,24 +62,24 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, currentMode }
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`
-                relative group w-10 h-10 rounded-lg flex items-center justify-center
-                transition-all duration-200 ease-out
+                relative group w-12 h-12 rounded-xl flex items-center justify-center
+                transition-all duration-300 ease-out glass-hover m-2
                 ${isActive 
-                  ? 'bg-primary/20 text-primary border border-primary/30 shadow-lg shadow-primary/10' 
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
+                  ? 'liquid-glass-primary text-primary border border-primary/30 shadow-lg shadow-primary/20 liquid-active' 
+                  : 'liquid-glass text-slate-400 hover:text-slate-200 border border-white/5'
                 }
               `}
               title={tab.tooltip}
             >
-              <Icon size={18} />
+              <Icon size={20} className="transition-transform duration-200 group-hover:scale-110" />
               
               {/* Active indicator */}
               {isActive && (
-                <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
+                <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full shadow-lg shadow-primary/50" />
               )}
               
               {/* Tooltip */}
-              <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+              <div className="absolute left-full ml-3 px-3 py-2 liquid-glass-dark text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 border border-white/10">
                 {tab.tooltip}
               </div>
             </button>
@@ -98,10 +90,11 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, currentMode }
       {/* Mode indicator at bottom */}
       <div className="mt-auto">
         <div className={`
-          w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
+          w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold
+          transition-all duration-300 glass-hover m-2
           ${currentMode === 'teacher' 
-            ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
-            : 'bg-green-500/20 text-green-400 border border-green-500/30'
+            ? 'liquid-glass text-blue-400 border border-blue-500/30 shadow-lg shadow-blue-500/20' 
+            : 'liquid-glass text-green-400 border border-green-500/30 shadow-lg shadow-green-500/20'
           }
         `}>
           {currentMode === 'teacher' ? 'T' : 'S'}
