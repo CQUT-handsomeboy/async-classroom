@@ -4,19 +4,19 @@ import {
   MessageSquare, 
   Settings, 
   BookOpen,
-  GraduationCap,
-  User
+  Edit3,
+  Bug
 } from 'lucide-react';
 
-export type SidebarTab = 'git' | 'mode' | 'chat' | 'settings' | 'crash';
+export type SidebarTab = 'git' | 'edit' | 'debug' | 'chat' | 'settings' | 'crash';
 
 interface SidebarProps {
   activeTab: SidebarTab;
   onTabChange: (tab: SidebarTab) => void;
-  currentMode?: 'teacher' | 'student';
+  userRole?: 'teacher' | 'student';
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, currentMode }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, userRole = 'teacher' }) => {
   const tabs = [
     {
       id: 'git' as SidebarTab,
@@ -25,10 +25,16 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, currentMode }
       tooltip: 'Git 历史和分支管理'
     },
     {
-      id: 'mode' as SidebarTab,
-      icon: currentMode === 'teacher' ? User : GraduationCap,
-      label: '模式切换',
-      tooltip: '教师/学生模式切换'
+      id: 'edit' as SidebarTab,
+      icon: Edit3,
+      label: '编辑模式',
+      tooltip: '编辑和创建内容'
+    },
+    {
+      id: 'debug' as SidebarTab,
+      icon: Bug,
+      label: '调试模式',
+      tooltip: '调试和学习模式'
     },
     {
       id: 'chat' as SidebarTab,
@@ -55,6 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, currentMode }
       <div className="flex flex-col gap-3 flex-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
+          // 简化逻辑：只根据 activeTab 来判断是否激活
           const isActive = activeTab === tab.id;
           
           return (
@@ -92,12 +99,12 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, currentMode }
         <div className={`
           w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold
           transition-all duration-300 glass-hover m-2
-          ${currentMode === 'teacher' 
+          ${userRole === 'teacher' 
             ? 'liquid-glass text-blue-400 border border-blue-500/30 shadow-lg shadow-blue-500/20' 
             : 'liquid-glass text-green-400 border border-green-500/30 shadow-lg shadow-green-500/20'
           }
         `}>
-          {currentMode === 'teacher' ? 'T' : 'S'}
+          {userRole === 'teacher' ? 'T' : 'S'}
         </div>
       </div>
     </div>

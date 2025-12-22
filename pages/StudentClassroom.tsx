@@ -22,6 +22,7 @@ const StudentClassroom: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SidebarTab>('git');
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [volume, setVolume] = useState(0.8);
+  const [currentMode, setCurrentMode] = useState<'edit' | 'debug'>('debug'); // 学生默认调试模式
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const handleModeChange = (mode: 'teacher' | 'student') => {
@@ -32,6 +33,18 @@ const StudentClassroom: React.FC = () => {
   };
 
   const handleTabChange = (tab: SidebarTab) => {
+    // 如果点击编辑或调试选项卡，切换模式并设置 activeTab
+    if (tab === 'edit' || tab === 'debug') {
+      setCurrentMode(tab);
+      setActiveTab(tab);
+      // 如果面板已关闭，打开它
+      if (!isPanelOpen) {
+        setIsPanelOpen(true);
+      }
+      return;
+    }
+    
+    // 其他选项卡的处理
     if (activeTab === tab && isPanelOpen) {
       setIsPanelOpen(false);
     } else {
@@ -55,8 +68,6 @@ const StudentClassroom: React.FC = () => {
             }}
           />
         );
-      case 'mode':
-        return <ModePanel currentMode="student" onModeChange={handleModeChange} />;
       case 'chat':
         return <AIChat contextCode={MOCK_MARKDOWN} />;
       case 'settings':
@@ -64,6 +75,20 @@ const StudentClassroom: React.FC = () => {
           <div className="p-6">
             <h3 className="text-lg font-semibold text-slate-200 mb-4">设置</h3>
             <p className="text-slate-400">设置面板开发中...</p>
+          </div>
+        );
+      case 'edit':
+        return (
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-slate-200 mb-4">编辑模式</h3>
+            <p className="text-slate-400">学生编辑面板开发中...</p>
+          </div>
+        );
+      case 'debug':
+        return (
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-slate-200 mb-4">调试模式</h3>
+            <p className="text-slate-400">当前处于学习调试模式</p>
           </div>
         );
       default:
@@ -142,7 +167,7 @@ const StudentClassroom: React.FC = () => {
       <Sidebar 
         activeTab={activeTab}
         onTabChange={handleTabChange}
-        currentMode="student"
+        userRole="student"
       />
 
       {/* Side Panel */}
@@ -151,7 +176,7 @@ const StudentClassroom: React.FC = () => {
           activeTab={activeTab}
           isOpen={isPanelOpen}
           onClose={() => setIsPanelOpen(false)}
-          title={getPanelTitle(activeTab, 'student')}
+          title={getPanelTitle(activeTab === 'edit' || activeTab === 'debug' ? currentMode : activeTab, 'student')}
         >
           {renderPanelContent()}
         </SidePanel>

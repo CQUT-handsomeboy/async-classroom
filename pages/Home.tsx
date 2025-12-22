@@ -23,7 +23,7 @@ const Home: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {COURSES.map(course => (
-          <Link key={course.id} to={`/teacher/${course.id}`} className="group block">
+          <Link key={course.id} to={`/workspace/${course.id}`} className="group block">
             <div className="bg-surface rounded-xl overflow-hidden border border-slate-700 transition-all hover:border-primary hover:shadow-lg hover:shadow-primary/10">
               <div className="aspect-video relative overflow-hidden">
                 <img 
