@@ -1,0 +1,5 @@
+{
+  "name": "Async Classroom",
+  "description": "An asynchronous coding-driven educational platform where teachers compile Markdown to video and students learn with AI assistance and breakpoint debugging.",
+  "requestFramePermissions": []
+}

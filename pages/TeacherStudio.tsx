@@ -1,0 +1,197 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { PlayCircle } from 'lucide-react';
+import Editor from '@monaco-editor/react';
+import UnifiedVideoPlayer from '../components/UnifiedVideoPlayer';
+import CrashPanel from '../components/CrashPanel';
+import ResizableSplitter from '../components/ResizableSplitter';
+import Sidebar, { SidebarTab } from '../components/Sidebar';
+import SidePanel from '../components/SidePanel';
+import GitLensPanel from '../components/GitLensPanel';
+import ModePanel from '../components/ModePanel';
+import { MOCK_MARKDOWN, COMMITS, CRASH_DATA } from '../constants';
+import { getPanelTitle } from '../utils';
+
+const TeacherStudio: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [decorations, setDecorations] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<SidebarTab>('git');
+  const [isPanelOpen, setIsPanelOpen] = useState(true);
+  const [volume, setVolume] = useState(0.8);
+  
+  const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
+
+  const handleModeChange = (mode: 'teacher' | 'student') => {
+    if (mode === 'student') {
+      navigate(`/student/${id}`);
+    }
+    // If already in teacher mode, no navigation needed
+  };
+
+  const handleTabChange = (tab: SidebarTab) => {
+    if (activeTab === tab && isPanelOpen) {
+      setIsPanelOpen(false);
+    } else {
+      setActiveTab(tab);
+      setIsPanelOpen(true);
+    }
+  };
+
+  const renderPanelContent = () => {
+    switch (activeTab) {
+      case 'git':
+        return <GitLensPanel commits={COMMITS} />;
+      case 'crash':
+        return (
+          <CrashPanel 
+            data={CRASH_DATA} 
+            currentTime={currentTime}
+            onSeek={(time: number) => {
+              setCurrentTime(time);
+              setIsPlaying(false);
+            }}
+          />
+        );
+      case 'mode':
+        return <ModePanel currentMode="teacher" onModeChange={handleModeChange} />;
+      case 'chat':
+        return (
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-slate-200 mb-4">AI 助手</h3>
+            <p className="text-slate-400">教师AI助手开发中...</p>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-slate-200 mb-4">设置</h3>
+            <p className="text-slate-400">设置面板开发中...</p>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const handleEditorDidMount = (editor: any, monaco: any) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
+  };
+
+  useEffect(() => {
+    if (!editorRef.current || !monacoRef.current) return;
+
+    // Simple mock mapping: map video time to markdown lines roughly
+    // In a real app, this would come from the compiler's source map
+    const totalLines = MOCK_MARKDOWN.split('\n').length;
+    // Assuming the video is approx 180s and the mock markdown is ~32 lines
+    // We map roughly 6 seconds per line for this demo
+    const line = Math.min(Math.floor(currentTime / 6) + 1, totalLines);
+    
+    // Use deltaDecorations to highlight the line
+    const newDecorations = editorRef.current.deltaDecorations(decorations, [
+      {
+        range: new monacoRef.current.Range(line, 1, line, 1),
+        options: {
+          isWholeLine: true,
+          className: 'current-line-highlight', // Defined in index.html
+        }
+      }
+    ]);
+    setDecorations(newDecorations);
+
+    // Auto scroll to the highlighted line if playing
+    if (isPlaying) {
+      editorRef.current.revealLineInCenter(line);
+    }
+    
+  }, [currentTime, isPlaying]);
+
+  return (
+    <div className="h-screen flex bg-background overflow-hidden">
+      {/* Left Sidebar */}
+      <Sidebar 
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        currentMode="teacher"
+      />
+
+      {/* Side Panel */}
+      {isPanelOpen && (
+        <SidePanel
+          activeTab={activeTab}
+          isOpen={isPanelOpen}
+          onClose={() => setIsPanelOpen(false)}
+          title={getPanelTitle(activeTab, 'teacher')}
+        >
+          {renderPanelContent()}
+        </SidePanel>
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Main Content Grid */}
+        <div className="flex-1 flex overflow-hidden">
+          <ResizableSplitter
+            defaultLeftWidth={35}
+            minLeftWidth={25}
+            maxLeftWidth={60}
+            leftPanel={
+              /* Left: Markdown Editor */
+              <div className="h-full border-r border-slate-700 flex flex-col">
+                <Editor
+                  height="100%"
+                  defaultLanguage="markdown"
+                  theme="vs-dark"
+                  value={MOCK_MARKDOWN}
+                  onMount={handleEditorDidMount}
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    fontFamily: "'Fira Code', monospace",
+                    wordWrap: 'on',
+                    renderLineHighlight: 'none' // Disable default highlight to use our custom one
+                  }}
+                />
+              </div>
+            }
+            rightPanel={
+              /* Right: Video Preview */
+              <div className="h-full bg-black relative flex flex-col">
+                {/* Video Container */}
+                <div className="flex-1 relative">
+                  <UnifiedVideoPlayer 
+                    src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                    currentTime={currentTime}
+                    onTimeUpdate={setCurrentTime}
+                    isPlaying={isPlaying}
+                    onPlayPause={setIsPlaying}
+                    volume={volume}
+                    onVolumeChange={setVolume}
+                    className="w-full h-full"
+                    showAdvancedControls={true}
+                  />
+                  
+                  {/* Status Indicator */}
+                  <div className="absolute top-4 right-4 liquid-glass-dark text-white px-3 py-1 rounded-lg text-xs flex items-center gap-2">
+                    <PlayCircle size={14} className="text-green-400"/>
+                    实时预览
+                  </div>
+                </div>
+              </div>
+            }
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TeacherStudio;
