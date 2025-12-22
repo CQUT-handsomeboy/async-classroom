@@ -73,14 +73,33 @@ $$ \\frac{dy}{dx} = \\lim_{\\Delta x \\to 0} \\frac{f(x+\\Delta x) - f(x)}{\\Del
 `;
 
 export const COMMITS: Commit[] = [
+  // 主分支提交
   { id: 'c1', message: 'feat: Add tangent line visualization', author: 'Teacher', date: '2023-10-25', isCurrent: true, branch: 'main' },
-  { id: 'c2', message: 'fix: Adjust axis range', author: 'Student_01', date: '2023-10-24', isCurrent: false, branch: 'student-fork' },
   { id: 'c3', message: 'docs: Update explanation text', author: 'Teacher', date: '2023-10-23', isCurrent: false, branch: 'main' },
-  { id: 'c4', message: 'feat: Add interactive controls', author: 'Student_02', date: '2023-10-22', isCurrent: false, branch: 'feature/controls' },
   { id: 'c5', message: 'fix: Animation timing issues', author: 'Teacher', date: '2023-10-21', isCurrent: false, branch: 'main' },
-  { id: 'c6', message: 'style: Improve UI colors', author: 'Student_01', date: '2023-10-21', isCurrent: false, branch: 'student-fork' },
-  { id: 'c7', message: 'feat: Add math formula renderer', author: 'Student_02', date: '2023-10-20', isCurrent: false, branch: 'feature/controls' },
   { id: 'c8', message: 'init: Initial project setup', author: 'Teacher', date: '2023-10-20', isCurrent: false, branch: 'main' },
+  
+  // 学生分支提交
+  { id: 'c2', message: 'fix: Adjust axis range', author: 'Student_01', date: '2023-10-24', isCurrent: false, branch: 'student-fork' },
+  { id: 'c6', message: 'style: Improve UI colors', author: 'Student_01', date: '2023-10-21', isCurrent: false, branch: 'student-fork' },
+  { id: 'c9', message: 'feat: Add dark mode support', author: 'Student_01', date: '2023-10-19', isCurrent: false, branch: 'student-fork' },
+  
+  // 功能分支提交
+  { id: 'c4', message: 'feat: Add interactive controls', author: 'Student_02', date: '2023-10-22', isCurrent: false, branch: 'feature/controls' },
+  { id: 'c7', message: 'feat: Add math formula renderer', author: 'Student_02', date: '2023-10-20', isCurrent: false, branch: 'feature/controls' },
+  { id: 'c10', message: 'test: Add unit tests for controls', author: 'Student_02', date: '2023-10-18', isCurrent: false, branch: 'feature/controls' },
+  
+  // 实验分支提交
+  { id: 'c11', message: 'experiment: Try WebGL renderer', author: 'Student_03', date: '2023-10-17', isCurrent: false, branch: 'experiment/webgl' },
+  { id: 'c12', message: 'perf: Optimize animation performance', author: 'Student_03', date: '2023-10-16', isCurrent: false, branch: 'experiment/webgl' },
+  
+  // 修复分支提交
+  { id: 'c13', message: 'hotfix: Critical bug in calculation', author: 'Teacher', date: '2023-10-15', isCurrent: false, branch: 'hotfix/calculation' },
+  { id: 'c14', message: 'fix: Memory leak in animation loop', author: 'Teacher', date: '2023-10-14', isCurrent: false, branch: 'hotfix/calculation' },
+  
+  // 文档分支提交
+  { id: 'c15', message: 'docs: Add API documentation', author: 'Student_04', date: '2023-10-13', isCurrent: false, branch: 'docs/api' },
+  { id: 'c16', message: 'docs: Update README with examples', author: 'Student_04', date: '2023-10-12', isCurrent: false, branch: 'docs/api' },
 ];
 
 export const CRASH_DATA: CrashPoint[] = [

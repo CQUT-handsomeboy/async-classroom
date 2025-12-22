@@ -390,3 +390,475 @@
     pointer-events: none;
   }
 }
+/* Floating Git Dock Styles */
+.floating-git-dock {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.98) 0%,
+    rgba(30, 41, 59, 0.95) 50%,
+    rgba(15, 23, 42, 0.98) 100%
+  );
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 
+    0 25px 80px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(59, 130, 246, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.floating-git-dock::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.08) 0%,
+    transparent 50%,
+    rgba(168, 85, 247, 0.05) 100%
+  );
+  pointer-events: none;
+}
+
+/* Git Graph Container Enhancement */
+.git-graph-container {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.git-graph-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(59, 130, 246, 0.4),
+    transparent
+  );
+}
+
+/* 增强Git图表文字清晰度 */
+.git-graph-container svg text {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+  font-weight: 500 !important;
+}
+
+.git-graph-container svg .commit-message {
+  fill: #f1f5f9 !important;
+  font-size: 13px !important;
+  font-family: "Inter", sans-serif !important;
+}
+
+.git-graph-container svg .branch-label {
+  fill: #f1f5f9 !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  font-family: "Inter", sans-serif !important;
+}
+
+/* Git Dock Animation */
+@keyframes dock-slide-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes dock-slide-out {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+}
+
+.dock-enter {
+  animation: dock-slide-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.dock-exit {
+  animation: dock-slide-out 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Enhanced Search Input */
+.git-search-input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s ease;
+}
+
+.git-search-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+/* Branch Filter Enhancement */
+.branch-filter {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s ease;
+}
+
+.branch-filter:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.branch-filter option {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+/* Status Bar Enhancement */
+.git-status-bar {
+  background: linear-gradient(
+    90deg,
+    rgba(59, 130, 246, 0.05) 0%,
+    rgba(168, 85, 247, 0.05) 100%
+  );
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Legend Dots Animation */
+@keyframes legend-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+.legend-dot {
+  animation: legend-pulse 2s ease-in-out infinite;
+}
+
+.legend-dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.legend-dot:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.legend-dot:nth-child(3) {
+  animation-delay: 1s;
+}
+
+/* Toolbar Button Enhancement */
+.git-toolbar-button {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.git-toolbar-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(59, 130, 246, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.git-toolbar-button:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+.git-toolbar-button:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+}
+
+/* Close Button Special Style */
+.git-close-button:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.2) !important;
+}
+
+.git-close-button:hover::before {
+  background: rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Expand/Collapse Animation */
+.dock-expand {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scrollbar Styling for Git Graph */
+.git-graph-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.git-graph-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+.git-graph-scroll::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.git-graph-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
+
+/* Empty State Enhancement */
+.git-empty-state {
+  background: radial-gradient(
+    circle at center,
+    rgba(59, 130, 246, 0.05) 0%,
+    transparent 70%
+  );
+  border: 2px dashed rgba(59, 130, 246, 0.2);
+  border-radius: 16px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .floating-git-dock {
+    width: 95vw !important;
+    height: 90vh !important;
+    max-width: none !important;
+  }
+  
+  .git-search-input {
+    width: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .git-search-input {
+    width: 100px;
+  }
+  
+  .branch-filter {
+    min-width: 80px;
+  }
+}
+
+/* 进一步增强Git图表文字可读性 */
+.git-graph-container svg {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+.git-graph-container svg text {
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* 确保提交消息文字足够大且清晰 */
+.git-graph-container svg .commit-message text {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  fill: #f8fafc !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* 分支标签样式增强 */
+.git-graph-container svg .branch-label text {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  fill: #f8fafc !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* 作者和哈希值文字样式 */
+.git-graph-container svg .commit-author text,
+.git-graph-container svg .commit-hash text {
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  fill: #cbd5e1 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .git-graph-container svg text {
+    text-shadow: 0 0 4px rgba(0, 0, 0, 1) !important;
+  }
+  
+  .git-graph-container svg .commit-message text {
+    fill: #ffffff !important;
+    font-weight: 600 !important;
+  }
+  
+  .git-graph-container svg .branch-label text {
+    fill: #ffffff !important;
+    font-weight: 700 !important;
+  }
+}
+
+/* 响应式字体大小调整 */
+@media (max-width: 1024px) {
+  .git-graph-container svg .commit-message text {
+    font-size: 13px !important;
+  }
+  
+  .git-graph-container svg .branch-label text {
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .git-graph-container svg .commit-message text {
+    font-size: 12px !important;
+  }
+  
+  .git-graph-container svg .branch-label text {
+    font-size: 11px !important;
+  }
+}
+/* Clean Git Dock Styles - 简洁白底黑字设计 */
+.git-dock-clean {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.git-dock-clean:hover {
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+/* Clean Git Graph Container */
+.git-graph-clean {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  position: relative;
+  overflow: hidden;
+}
+
+.git-graph-clean::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #3b82f6,
+    transparent
+  );
+}
+
+/* Clean Git Graph Text Styles */
+.git-graph-clean svg text {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+.git-graph-clean svg .commit-message text {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  fill: #374151 !important;
+}
+
+.git-graph-clean svg .branch-label text {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  fill: #1f2937 !important;
+}
+
+.git-graph-clean svg .commit-author text,
+.git-graph-clean svg .commit-hash text {
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  fill: #6b7280 !important;
+}
+
+/* Clean scrollbar */
+.git-graph-clean::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.git-graph-clean::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.git-graph-clean::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.git-graph-clean::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Animation for dock entrance */
+@keyframes clean-dock-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.git-dock-clean {
+  animation: clean-dock-enter 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Responsive adjustments for clean design */
+@media (max-width: 1024px) {
+  .git-dock-clean {
+    width: 95vw !important;
+    height: 90vh !important;
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .git-graph-clean svg .commit-message text {
+    font-size: 13px !important;
+  }
+  
+  .git-graph-clean svg .branch-label text {
+    font-size: 12px !important;
+  }
+}

@@ -32,14 +32,12 @@ const StudentClassroom: React.FC = () => {
   };
 
   const handleTabChange = (tab: SidebarTab) => {
-    // 如果点击编辑或调试选项卡，切换模式并设置 activeTab
+    // 如果点击编辑或调试选项卡，切换模式但不显示侧边面板
     if (tab === 'edit' || tab === 'debug') {
       setCurrentMode(tab);
       setActiveTab(tab);
-      // 如果面板已关闭，打开它
-      if (!isPanelOpen) {
-        setIsPanelOpen(true);
-      }
+      // 关闭侧边面板，因为编辑/调试模式不需要显示左侧面板
+      setIsPanelOpen(false);
       return;
     }
     
@@ -169,8 +167,8 @@ const StudentClassroom: React.FC = () => {
         userRole="student"
       />
 
-      {/* Side Panel - 只在git模式下显示 */}
-      {isPanelOpen && activeTab === 'git' && (
+      {/* Side Panel - 只在非编辑/调试模式下显示 */}
+      {isPanelOpen && activeTab !== 'edit' && activeTab !== 'debug' && (
         <SidePanel
           activeTab={activeTab}
           isOpen={isPanelOpen}

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浮动Git Dock测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .test-button {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .test-button:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .feature-list {
+            text-align: left;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        
+        .feature-list h3 {
+            color: #3b82f6;
+            margin-bottom: 15px;
+        }
+        
+        .feature-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-list li::before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🚀 浮动Git Dock功能测试</h1>
+        <p>这是一个测试页面，用于展示新的浮动Git Dock功能</p>
+        
+        <div class="feature-list">
+            <h3>✨ 新功能特性</h3>
+            <ul>
+                <li>点击左侧边栏的"版本控制"选项卡时，不再显示传统的侧边栏</li>
+                <li>取而代之的是一个漂亮的液态玻璃风格浮动Dock</li>
+                <li>使用gitgraphjs-react展示美观的Git分支树</li>
+                <li>支持搜索提交信息和作者</li>
+                <li>支持按分支过滤显示</li>
+                <li>可展开/收缩Dock大小</li>
+                <li>实时刷新Git状态</li>
+                <li>响应式设计，适配不同屏幕尺寸</li>
+            </ul>
+        </div>
+        
+        <div class="feature-list">
+            <h3>🎨 设计亮点</h3>
+            <ul>
+                <li>液态玻璃材质效果，具有毛玻璃背景模糊</li>
+                <li>渐变边框和阴影效果</li>
+                <li>平滑的动画过渡</li>
+                <li>悬浮按钮的涟漪效果</li>
+                <li>分支图的自定义主题配色</li>
+                <li>状态栏的脉冲动画图例</li>
+            </ul>
+        </div>
+        
+        <div style="margin: 40px 0;">
+            <button class="test-button" onclick="window.open('http://localhost:3000', '_blank')">
+                🔗 打开应用测试
+            </button>
+            <button class="test-button" onclick="showInstructions()">
+                📖 查看使用说明
+            </button>
+        </div>
+        
+        <div id="instructions" style="display: none; text-align: left; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 20px; border-radius: 12px; margin: 20px 0;">
+            <h3 style="color: #10b981;">📋 使用说明</h3>
+            <ol style="color: #cbd5e1; line-height: 1.6;">
+                <li>打开应用后，进入任意课程页面</li>
+                <li>点击左侧边栏的"版本控制"图标（GitBranch图标）</li>
+                <li>浮动Git Dock将会出现在屏幕中央</li>
+                <li>可以使用搜索框搜索特定的提交</li>
+                <li>可以使用分支过滤器只显示特定分支的提交</li>
+                <li>点击展开按钮可以放大Dock</li>
+                <li>点击X按钮或背景区域可以关闭Dock</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        function showInstructions() {
+            const instructions = document.getElementById('instructions');
+            instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>

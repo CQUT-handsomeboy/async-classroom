@@ -11,6 +11,7 @@ import ResizableSplitter from '../components/ResizableSplitter';
 import Sidebar, { SidebarTab } from '../components/Sidebar';
 import SidePanel from '../components/SidePanel';
 import GitLensPanel from '../components/GitLensPanel';
+import FloatingGitDock from '../components/FloatingGitDock';
 import CompileToolbar from '../components/CompileToolbar';
 import { COURSES, MOCK_MARKDOWN, COMMITS, TRANSCRIPT, CRASH_DATA } from '../constants';
 import { getPanelTitle } from '../utils';
@@ -22,6 +23,7 @@ const UnifiedWorkspace: React.FC = () => {
   const [decorations, setDecorations] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<SidebarTab>('git');
   const [isPanelOpen, setIsPanelOpen] = useState(true);
+  const [isGitDockVisible, setIsGitDockVisible] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [currentMode, setCurrentMode] = useState<'edit' | 'debug'>('edit');
   
@@ -36,11 +38,20 @@ const UnifiedWorkspace: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const handleTabChange = (tab: SidebarTab) => {
+    // 如果点击git选项卡，显示浮动dock而不是侧边栏
+    if (tab === 'git') {
+      setIsGitDockVisible(true);
+      setActiveTab(tab);
+      setIsPanelOpen(false); // 关闭侧边栏
+      return;
+    }
+    
     // 如果点击编辑或调试选项卡，切换模式并设置 activeTab
     if (tab === 'edit') {
       setCurrentMode('edit');
       setActiveTab(tab);
       setIsPanelOpen(true);
+      setIsGitDockVisible(false);
       return;
     }
     
@@ -48,6 +59,7 @@ const UnifiedWorkspace: React.FC = () => {
       setCurrentMode('debug');
       setActiveTab(tab);
       setIsPanelOpen(true);
+      setIsGitDockVisible(false);
       return;
     }
 
@@ -58,6 +70,7 @@ const UnifiedWorkspace: React.FC = () => {
       setActiveTab(tab);
       setIsPanelOpen(true);
     }
+    setIsGitDockVisible(false);
   };
 
   const renderPanelContent = () => {
@@ -84,26 +97,13 @@ const UnifiedWorkspace: React.FC = () => {
               <p className="text-slate-400">编辑模式 AI 助手开发中...</p>
             </div>
           );
-      case 'settings':
-        return (
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-slate-200 mb-4">设置</h3>
-            <p className="text-slate-400">设置面板开发中...</p>
-          </div>
-        );
       case 'edit':
         return (
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-slate-200 mb-4">编辑模式</h3>
-            <p className="text-slate-400">编辑模式面板开发中...</p>
-          </div>
+          <></>
         );
       case 'debug':
         return (
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-slate-200 mb-4">调试模式</h3>
-            <p className="text-slate-400">调试模式面板开发中...</p>
-          </div>
+          <></>
         );
       default:
         return null;
@@ -237,18 +237,13 @@ const UnifiedWorkspace: React.FC = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
       />
-
-      {/* Side Panel - 只在git模式下显示 */}
-      {isPanelOpen && activeTab === 'git' && (
-        <SidePanel
-          activeTab={activeTab}
-          isOpen={isPanelOpen}
-          onClose={() => setIsPanelOpen(false)}
-          title={getPanelTitle(activeTab, currentMode)}
-        >
-          {renderPanelContent()}
-        </SidePanel>
-      )}
+      
+      {/* 浮动Git Dock */}
+      <FloatingGitDock
+        commits={COMMITS}
+        isVisible={isGitDockVisible}
+        onClose={() => setIsGitDockVisible(false)}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
