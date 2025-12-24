@@ -65,7 +65,38 @@ const UnifiedVideoPlayer: React.FC<UnifiedVideoPlayerProps> = ({
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
+      console.log('✅ 视频元数据加载成功:', {
+        duration: videoRef.current.duration,
+        videoWidth: videoRef.current.videoWidth,
+        videoHeight: videoRef.current.videoHeight,
+        src: src
+      });
     }
+  };
+
+  const handleError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    const video = e.currentTarget;
+    console.error('❌ 视频加载失败:', {
+      error: video.error,
+      networkState: video.networkState,
+      readyState: video.readyState,
+      src: src
+    });
+    
+    if (video.error) {
+      console.error('视频错误详情:', {
+        code: video.error.code,
+        message: video.error.message
+      });
+    }
+  };
+
+  const handleLoadStart = () => {
+    console.log('🔄 开始加载视频:', src);
+  };
+
+  const handleCanPlay = () => {
+    console.log('✅ 视频可以播放');
   };
 
   const togglePlay = () => {
@@ -131,8 +162,12 @@ const UnifiedVideoPlayer: React.FC<UnifiedVideoPlayerProps> = ({
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={() => onPlayPause(false)}
+        onError={handleError}
+        onLoadStart={handleLoadStart}
+        onCanPlay={handleCanPlay}
         src={src}
         onClick={togglePlay}
+        crossOrigin="anonymous"
       />
       
       {/* Liquid Glass Video Controls */}

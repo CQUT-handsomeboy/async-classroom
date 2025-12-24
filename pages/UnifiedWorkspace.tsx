@@ -78,7 +78,10 @@ const UnifiedWorkspace: React.FC = () => {
         
         // 如果有视频URL，更新视频播放器
         if (taskData.video_url) {
+          console.log("✅ 有视频URL:", taskData.video_url);
           setCurrentVideoUrl(taskData.video_url);
+        } else {
+          console.error("❌ 无视频URL，taskData:", taskData);
         }
         
         console.log('Workspace数据加载成功:', taskData);
@@ -234,10 +237,12 @@ const UnifiedWorkspace: React.FC = () => {
         
         // 将编译生成的视频URL设置到播放器中
         if (finalTask.video_url) {
+          console.log('✅ 视频已更新:', finalTask.video_url);
           setCurrentVideoUrl(finalTask.video_url);
           setCurrentTime(0); // 重置播放时间到开始
           setIsPlaying(false); // 暂停播放
-          console.log('视频已更新:', finalTask.video_url);
+        } else {
+          console.error("❌ 编译完成但没有视频URL，finalTask:", finalTask);
         }
       } else {
         setCompileStatus('error');

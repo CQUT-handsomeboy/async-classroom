@@ -95,6 +95,8 @@ export class CompileService {
       const result = await response.json();
       
       // 确保返回的数据包含所需字段
+      result.video_url = new URL(CONFIG.VIDEO_SERVER_URL) + result.video_url
+      
       return {
         task_id: result.task_id || workspaceId,
         status: result.status || 'completed',
