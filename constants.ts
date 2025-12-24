@@ -1,5 +1,11 @@
 import { Course, Commit, CrashPoint, TranscriptLine } from './types';
 
+// 环境变量配置
+export const CONFIG = {
+  VIDEO_SERVER_URL: 'https://frp-put.com:33747/videos',
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+} as const;
+
 export const COURSES: Course[] = [
   {
     id: '1',
