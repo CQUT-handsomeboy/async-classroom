@@ -43,12 +43,57 @@ const UnifiedWorkspace: React.FC = () => {
     message?: string;
   } | null>(null);
   const [progressMessage, setProgressMessage] = useState('');
-  const [editorContent, setEditorContent] = useState(MOCK_MARKDOWN);
+  const [editorContent, setEditorContent] = useState('');
   const [currentVideoUrl, setCurrentVideoUrl] = useState("https://media.w3.org/2010/05/sintel/trailer.mp4");
+  const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(true);
+  const [workspaceError, setWorkspaceError] = useState<string | null>(null);
   
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // 加载workspace数据
+  useEffect(() => {
+    const loadWorkspaceData = async () => {
+      if (!id) {
+        setWorkspaceError('未提供workspace ID');
+        setIsLoadingWorkspace(false);
+        return;
+      }
+
+      try {
+        setIsLoadingWorkspace(true);
+        setWorkspaceError(null);
+        
+        // 从API获取workspace任务数据
+        const taskData = await CompileService.getTaskByWorkspaceId(id);
+        
+        // 将code字段填充到编辑器中
+        if (taskData.code) {
+          setEditorContent(taskData.code);
+        } else {
+          // 如果没有code字段，使用默认内容
+          setEditorContent(MOCK_MARKDOWN);
+        }
+        
+        // 如果有视频URL，更新视频播放器
+        if (taskData.video_url) {
+          setCurrentVideoUrl(taskData.video_url);
+        }
+        
+        console.log('Workspace数据加载成功:', taskData);
+      } catch (error) {
+        console.error('加载workspace数据失败:', error);
+        setWorkspaceError(error instanceof Error ? error.message : '加载workspace数据失败');
+        // 出错时使用默认内容
+        setEditorContent(MOCK_MARKDOWN);
+      } finally {
+        setIsLoadingWorkspace(false);
+      }
+    };
+
+    loadWorkspaceData();
+  }, [id]);
 
   const handleTabChange = (tab: SidebarTab) => {
     // 如果点击git选项卡，显示浮动dock而不是侧边栏
@@ -406,24 +451,40 @@ const UnifiedWorkspace: React.FC = () => {
                       />
                       
                       <div className="flex-1">
-                        <Editor
-                          height="100%"
-                          defaultLanguage="markdown"
-                          theme="vs-dark"
-                          value={editorContent}
-                          onChange={(value) => setEditorContent(value || '')}
-                          onMount={handleEditorDidMount}
-                          options={{
-                            minimap: { enabled: false },
-                            fontSize: 14,
-                            lineNumbers: 'on',
-                            scrollBeyondLastLine: false,
-                            automaticLayout: true,
-                            fontFamily: "'Fira Code', monospace",
-                            wordWrap: 'on',
-                            renderLineHighlight: 'none'
-                          }}
-                        />
+                        {isLoadingWorkspace ? (
+                          <div className="h-full flex items-center justify-center bg-slate-900">
+                            <div className="text-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                              <p className="text-slate-400">正在加载workspace数据...</p>
+                            </div>
+                          </div>
+                        ) : workspaceError ? (
+                          <div className="h-full flex items-center justify-center bg-slate-900">
+                            <div className="text-center">
+                              <p className="text-red-400 mb-2">加载失败</p>
+                              <p className="text-slate-500 text-sm">{workspaceError}</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <Editor
+                            height="100%"
+                            defaultLanguage="markdown"
+                            theme="vs-dark"
+                            value={editorContent}
+                            onChange={(value) => setEditorContent(value || '')}
+                            onMount={handleEditorDidMount}
+                            options={{
+                              minimap: { enabled: false },
+                              fontSize: 14,
+                              lineNumbers: 'on',
+                              scrollBeyondLastLine: false,
+                              automaticLayout: true,
+                              fontFamily: "'Fira Code', monospace",
+                              wordWrap: 'on',
+                              renderLineHighlight: 'none'
+                            }}
+                          />
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -499,24 +560,40 @@ const UnifiedWorkspace: React.FC = () => {
                     />
                     
                     <div className="flex-1">
-                      <Editor
-                        height="100%"
-                        defaultLanguage="markdown"
-                        theme="vs-dark"
-                        value={editorContent}
-                        onChange={(value) => setEditorContent(value || '')}
-                        onMount={handleEditorDidMount}
-                        options={{
-                          minimap: { enabled: false },
-                          fontSize: 14,
-                          lineNumbers: 'on',
-                          scrollBeyondLastLine: false,
-                          automaticLayout: true,
-                          fontFamily: "'Fira Code', monospace",
-                          wordWrap: 'on',
-                          renderLineHighlight: 'none'
-                        }}
-                      />
+                      {isLoadingWorkspace ? (
+                        <div className="h-full flex items-center justify-center bg-slate-900">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                            <p className="text-slate-400">正在加载workspace数据...</p>
+                          </div>
+                        </div>
+                      ) : workspaceError ? (
+                        <div className="h-full flex items-center justify-center bg-slate-900">
+                          <div className="text-center">
+                            <p className="text-red-400 mb-2">加载失败</p>
+                            <p className="text-slate-500 text-sm">{workspaceError}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <Editor
+                          height="100%"
+                          defaultLanguage="markdown"
+                          theme="vs-dark"
+                          value={editorContent}
+                          onChange={(value) => setEditorContent(value || '')}
+                          onMount={handleEditorDidMount}
+                          options={{
+                            minimap: { enabled: false },
+                            fontSize: 14,
+                            lineNumbers: 'on',
+                            scrollBeyondLastLine: false,
+                            automaticLayout: true,
+                            fontFamily: "'Fira Code', monospace",
+                            wordWrap: 'on',
+                            renderLineHighlight: 'none'
+                          }}
+                        />
+                      )}
                     </div>
                   </div>
                 }

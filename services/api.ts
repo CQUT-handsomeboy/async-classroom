@@ -74,56 +74,6 @@ class ApiService {
     }
   }
 
-  // 获取用户脚本列表
-  async getScripts(): Promise<ScriptsResponse> {
-    console.log('📋 开始获取脚本列表...');
-    
-    // 如果没有token，尝试从localStorage获取
-    if (!this.accessToken) {
-      this.accessToken = localStorage.getItem('access_token');
-      console.log('🔑 从localStorage获取token:', this.accessToken ? '存在' : '不存在');
-    }
-
-    if (!this.accessToken) {
-      throw new Error('未登录，请先登录');
-    }
-
-    try {
-      console.log('📡 发送脚本列表请求...');
-      const response = await fetch(`${API_BASE_URL}/session/scripts`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      console.log('📋 脚本列表响应状态:', response.status);
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          // token过期，清除本地存储
-          console.warn('⚠️ Token过期，清除认证信息');
-          this.clearAuth();
-          throw new Error('登录已过期，请重新登录');
-        }
-        const errorText = await response.text();
-        console.error('❌ 获取脚本列表失败:', errorText);
-        throw new Error(`获取脚本列表失败: ${response.status} ${response.statusText} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ 脚本列表获取成功:', data);
-      return data;
-    } catch (error) {
-      console.error('❌ 脚本列表请求异常:', error);
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('网络连接失败，请检查网络连接或稍后重试');
-      }
-      throw error;
-    }
-  }
-
   // 检查是否已登录
   isAuthenticated(): boolean {
     return !!(this.accessToken || localStorage.getItem('access_token'));
@@ -145,6 +95,64 @@ class ApiService {
   logout(): void {
     this.clearAuth();
   }
+
+  // 获取访问令牌
+  private getAccessToken(): string | null {
+    return this.accessToken || localStorage.getItem('access_token');
+  }
+
+  // 获取课程数据（从任务转换）
+  async getCourseDataFromTasks(offset: number = 0, limit: number | null = null): Promise<Course[]> {
+    console.log('📋 获取课程数据（从任务转换）, offset:', offset, 'limit:', limit);
+    
+    const token = this.getAccessToken();
+    if (!token) {
+      throw new Error('未登录，请先登录');
+    }
+
+    try {
+      const url = new URL(`${API_BASE_URL}/tasks`);
+      url.searchParams.append('offset', offset.toString());
+      if (limit !== null) {
+        url.searchParams.append('limit', limit.toString());
+      }
+
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('📋 任务列表响应状态:', response.status);
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.clearAuth();
+          throw new Error('登录已过期，请重新登录');
+        }
+        const errorText = await response.text();
+        console.error('❌ 获取任务列表失败:', errorText);
+        throw new Error(`获取任务列表失败: ${response.status} ${response.statusText}`);
+      }
+
+      const data: TasksResponse = await response.json();
+      console.log('✅ 获取任务列表成功:', data);
+      
+      // 将任务转换为课程格式
+      const courses = tasksResponseToCourses(data);
+      console.log('✅ 转换为课程格式完成:', courses);
+
+      return courses;
+    } catch (error) {
+      console.error('❌ 获取课程数据异常:', error);
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('网络连接失败，请检查网络连接或稍后重试');
+      }
+      throw error;
+    }
+  }
 }
 
 export const apiService = new ApiService();
@@ -155,10 +163,6 @@ export function scriptToCourse(script: Script): Course {
   
   // 生成随机封面图片
   const randomId = Math.floor(Math.random() * 1000);
-  
-  // 格式化创建时间
-  const createdDate = new Date(script.created_at);
-  const formattedDate = createdDate.toLocaleDateString('zh-CN');
   
   // 获取用户名作为作者
   const author = apiService.getCurrentUsername() || '未知用户';
@@ -180,4 +184,44 @@ export function scriptToCourse(script: Script): Course {
 }
 
 // 导入Course类型
-import { Course } from '../types';
+import { Course, Task, TasksResponse } from '../types';
+
+// 将Task转换为Course格式
+export function taskToCourse(task: Task): Course {
+  console.log('🔄 转换任务到课程格式:', task);
+  
+  // 生成随机封面图片
+  const randomId = Math.floor(Math.random() * 1000);
+  
+  // 格式化创建时间
+  const createdDate = new Date(task.created_at * 1000); // Task的created_at是时间戳（秒）
+  const formattedDate = createdDate.toLocaleDateString('zh-CN');
+  
+  // 获取用户名作为作者
+  const author = apiService.getCurrentUsername() || '未知用户';
+  
+  const course: Course = {
+    id: task.task_id,
+    title: `任务 ${task.task_id}`,
+    author: author,
+    thumbnail: `https://picsum.photos/400/225?random=${randomId}`,
+    description: '', // 使用code字段作为描述
+    duration: '未知', // API没有提供时长信息
+    views: Math.floor(Math.random() * 10000), // 随机生成观看次数
+    created_at: new Date(task.created_at * 1000).toISOString(),
+    video_url: task.video_url,
+  };
+  
+  console.log('✅ 转换完成:', course);
+  return course;
+}
+
+// 将TasksResponse转换为Course数组
+export function tasksResponseToCourses(tasksResponse: TasksResponse): Course[] {
+  console.log('🔄 转换任务响应到课程数组:', tasksResponse);
+  
+  const courses = tasksResponse.tasks.map(task => taskToCourse(task));
+  
+  console.log('✅ 转换完成，共', courses.length, '个课程');
+  return courses;
+}

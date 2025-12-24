@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Clock, Eye, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { apiService, scriptToCourse } from '../services/api';
+import { apiService } from '../services/api';
 import { Course } from '../types';
 import LoginForm from '../components/LoginForm';
 
@@ -20,24 +20,21 @@ const Home: React.FC = () => {
     if(isAuthenticated) fetchScripts()
   },[isAuthenticated])
 
-  // 获取脚本列表
+  // 获取课程列表
   const fetchScripts = async () => {
-    console.log('🔄 开始获取脚本列表...');
+    console.log('🔄 开始获取课程列表...');
     setIsLoading(true);
     setError(null);
     
     try {
-      console.log('📡 调用API获取脚本...');
-      const response = await apiService.getScripts();
-      console.log('✅ API响应:', response);
-      
-      const coursesData = response.scripts.map(scriptToCourse);
-      console.log('🔄 转换后的课程数据:', coursesData);
+      console.log('📡 调用API获取课程...');
+      const coursesData = await apiService.getCourseDataFromTasks();
+      console.log('✅ API响应:', coursesData);
       
       setCourses(coursesData);
       console.log('✅ 课程列表设置完成，数量:', coursesData.length);
     } catch (err) {
-      console.error('❌ 获取脚本失败:', err);
+      console.error('❌ 获取课程失败:', err);
       setError(err instanceof Error ? err.message : '获取课程列表失败');
       if (err instanceof Error && err.message.includes('登录已过期')) {
         setIsAuthenticated(false);

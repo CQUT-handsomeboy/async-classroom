@@ -6,6 +6,7 @@ export interface CompileTask {
   message: string;
   video_url: string | null;
   srt_url: string | null;
+  code?: string;
 }
 
 export interface CompileResponse {
@@ -69,6 +70,41 @@ export class CompileService {
       return result;
     } catch (error) {
       console.error('任务状态查询失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 根据workspace ID获取任务数据和代码
+   * @param workspaceId workspace ID
+   * @returns 任务数据，包含code字段
+   */
+  static async getTaskByWorkspaceId(workspaceId: string): Promise<CompileTask> {
+    try {
+      const response = await fetch(`${this.TASK_ENDPOINT}/${workspaceId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`获取workspace任务失败: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      // 确保返回的数据包含所需字段
+      return {
+        task_id: result.task_id || workspaceId,
+        status: result.status || 'completed',
+        message: result.message || '',
+        video_url: result.video_url || null,
+        srt_url: result.srt_url || null,
+        code: result.code || ''
+      };
+    } catch (error) {
+      console.error('获取workspace任务失败:', error);
       throw error;
     }
   }

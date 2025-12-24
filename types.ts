@@ -37,3 +37,21 @@ export interface ChatMessage {
   text: string;
   timestamp: number;
 }
+
+export interface Task {
+  task_id: string;
+  status: string;
+  message: string;
+  video_url: string;
+  srt_url: string;
+  created_at: number;
+  code: string;
+}
+
+export interface TasksResponse {
+  total: number;
+  count: number;
+  offset: number;
+  limit: number | null;
+  tasks: Task[];
+}
