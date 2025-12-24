@@ -1,3 +1,117 @@
+# 异步课堂 - 统一工作空间
+
+一个现代化的教学视频制作和调试平台，支持实时编译、可视化调试和AI辅助功能。
+
+## 功能特性
+
+### 🎬 实时编译系统
+- **真实API集成**: 连接到视频服务器进行实际的视频编译
+- **任务状态跟踪**: 实时显示编译进度和状态
+- **结果下载**: 编译完成后可直接下载视频和字幕文件
+- **错误处理**: 完善的错误提示和重试机制
+
+### 📝 Monaco编辑器
+- 支持Markdown语法高亮
+- 实时内容同步
+- 代码自动补全
+- 可视化行高亮
+
+### 🐛 可视化调试
+- 时间轴调试控制
+- 断点设置和管理
+- 步进式内容浏览
+- 实时转录显示
+
+### 🤖 AI助手集成
+- 浮动AI对话面板
+- 上下文感知的代码建议
+- 智能错误诊断
+
+### 🔄 Git集成
+- 可视化提交历史
+- 分支管理
+- 浮动Git面板
+
+## 编译API使用
+
+### API端点
+- **编译提交**: `POST /api/compile`
+- **任务查询**: `GET /api/tasks/{task_id}`
+
+### 编译流程
+1. 用户在Monaco编辑器中编写内容
+2. 点击编译按钮提交任务
+3. 系统显示任务ID和进度状态
+4. 轮询查询任务完成状态
+5. 编译完成后显示下载链接
+
+### 响应格式
+```json
+{
+  "task_id": "c1da0b74-9153-4ff2-b103-59fdeef29a5b",
+  "status": "pending|processing|completed|failed",
+  "message": "编译任务已提交，正在后台处理",
+  "video_url": "https://example.com/video.mp4",
+  "srt_url": "https://example.com/subtitles.srt"
+}
+```
+
+## 技术栈
+
+- **前端**: React + TypeScript + Vite
+- **编辑器**: Monaco Editor
+- **UI组件**: Tailwind CSS + Lucide Icons
+- **状态管理**: React Hooks
+- **API通信**: Fetch API
+
+## 开发指南
+
+### 安装依赖
+```bash
+npm install
+# 或
+pnpm install
+```
+
+### 启动开发服务器
+```bash
+npm run dev
+# 或
+pnpm dev
+```
+
+### 测试编译API
+```bash
+node test-compile.js
+```
+
+## 项目结构
+
+```
+├── components/           # React组件
+│   ├── CompileToolbar.tsx   # 编译工具栏
+│   ├── UnifiedVideoPlayer.tsx # 视频播放器
+│   ├── FloatingAIDock.tsx   # AI助手面板
+│   └── ...
+├── services/            # 服务层
+│   └── compileService.ts   # 编译API服务
+├── pages/              # 页面组件
+│   └── UnifiedWorkspace.tsx # 主工作空间
+├── constants.ts        # 常量配置
+└── types.ts           # TypeScript类型定义
+```
+
+## 配置说明
+
+编译服务器地址在 `constants.ts` 中配置：
+
+```typescript
+export const CONFIG = {
+  VIDEO_SERVER_URL: 'https://frp-put.com:33747',
+  // ...
+} as const;
+```
+
 # 效果图
 ![](./.assets/img1.png)
 ![](./.assets/img2.png)

@@ -6,6 +6,8 @@ export interface Course {
   description: string;
   duration: string;
   views: number;
+  created_at?: string;
+  video_url?: string;
 }
 
 export interface Commit {

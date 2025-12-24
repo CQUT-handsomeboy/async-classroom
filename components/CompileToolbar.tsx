@@ -8,20 +8,31 @@ import {
   Settings
 } from 'lucide-react';
 
+interface CompileResult {
+  task_id: string;
+  video_url?: string;
+  srt_url?: string;
+  message?: string;
+}
+
 interface CompileToolbarProps {
   onCompile: () => void;
   isCompiling?: boolean;
   compileStatus?: 'idle' | 'compiling' | 'success' | 'error';
+  compileResult?: CompileResult | null;
   errorCount?: number;
   warningCount?: number;
+  progressMessage?: string;
 }
 
 const CompileToolbar: React.FC<CompileToolbarProps> = ({
   onCompile,
   isCompiling = false,
   compileStatus = 'idle',
+  compileResult = null,
   errorCount = 0,
-  warningCount = 0
+  warningCount = 0,
+  progressMessage = ''
 }) => {
   const getStatusIcon = () => {
     switch (compileStatus) {
@@ -39,7 +50,7 @@ const CompileToolbar: React.FC<CompileToolbarProps> = ({
   const getStatusText = () => {
     switch (compileStatus) {
       case 'compiling':
-        return '编译中...';
+        return progressMessage || '编译中...';
       case 'success':
         return '编译成功';
       case 'error':
@@ -105,6 +116,14 @@ const CompileToolbar: React.FC<CompileToolbarProps> = ({
 
         {/* Right side - Additional controls */}
         <div className="flex items-center gap-2">
+          {/* Task ID display - only show when compiling or completed */}
+          {(compileStatus === 'compiling' || compileStatus === 'success') && compileResult?.task_id && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-500/20 border border-slate-400/30">
+              <span className="text-xs text-slate-300">任务ID:</span>
+              <code className="text-xs text-slate-200 font-mono">{compileResult.task_id.slice(0, 8)}...</code>
+            </div>
+          )}
+
           {/* Output/Logs button */}
           <button
             className="p-2 rounded-xl transition-all duration-300 hover:bg-slate-500/30 text-slate-300 hover:text-slate-200 border border-transparent hover:border-slate-400/30 glass-button"

@@ -17,6 +17,7 @@ import FloatingAIButton from '../components/FloatingAIButton';
 import CompileToolbar from '../components/CompileToolbar';
 import { COURSES, MOCK_MARKDOWN, COMMITS, TRANSCRIPT, CRASH_DATA } from '../constants';
 import { getPanelTitle } from '../utils';
+import { CompileService, CompileTask } from '../services/compileService';
 
 const UnifiedWorkspace: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +36,15 @@ const UnifiedWorkspace: React.FC = () => {
   const [isCompiling, setIsCompiling] = useState(false);
   const [errorCount, setErrorCount] = useState(0);
   const [warningCount, setWarningCount] = useState(0);
+  const [compileResult, setCompileResult] = useState<{
+    task_id: string;
+    video_url?: string;
+    srt_url?: string;
+    message?: string;
+  } | null>(null);
+  const [progressMessage, setProgressMessage] = useState('');
+  const [editorContent, setEditorContent] = useState(MOCK_MARKDOWN);
+  const [currentVideoUrl, setCurrentVideoUrl] = useState("https://media.w3.org/2010/05/sintel/trailer.mp4");
   
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
@@ -119,29 +129,82 @@ const UnifiedWorkspace: React.FC = () => {
   };
 
   const handleCompile = async () => {
-    setIsCompiling(true);
-    setCompileStatus('compiling');
-    
-    // 模拟编译过程
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const hasErrors = Math.random() > 0.7;
-      const hasWarnings = Math.random() > 0.5;
-      
-      if (hasErrors) {
-        setCompileStatus('error');
-        setErrorCount(Math.floor(Math.random() * 5) + 1);
-        setWarningCount(hasWarnings ? Math.floor(Math.random() * 3) + 1 : 0);
-      } else {
-        setCompileStatus('success');
-        setErrorCount(0);
-        setWarningCount(hasWarnings ? Math.floor(Math.random() * 3) + 1 : 0);
-      }
-    } catch (error) {
+    if (!editorContent.trim()) {
       setCompileStatus('error');
       setErrorCount(1);
-      setWarningCount(0);
+      setProgressMessage('编辑器内容为空');
+      return;
+    }
+
+    setIsCompiling(true);
+    setCompileStatus('compiling');
+    setErrorCount(0);
+    setWarningCount(0);
+    setProgressMessage('正在提交编译任务...');
+    setCompileResult(null);
+
+    try {
+      // 提交编译任务
+      const response = await CompileService.submitCompileTask(editorContent);
+      
+      setCompileResult({
+        task_id: response.task_id,
+        message: response.message
+      });
+      
+      setProgressMessage('编译任务已提交，正在处理...');
+
+      // 开始轮询任务状态
+      const finalTask = await CompileService.pollTaskStatus(
+        response.task_id,
+        (task: CompileTask) => {
+          // 更新进度消息
+          switch (task.status) {
+            case 'pending':
+              setProgressMessage('任务排队中...');
+              break;
+            case 'processing':
+              setProgressMessage('正在编译视频...');
+              break;
+            case 'completed':
+              setProgressMessage('编译完成！');
+              break;
+            case 'failed':
+              setProgressMessage('编译失败');
+              break;
+          }
+        }
+      );
+
+      // 处理最终结果
+      if (finalTask.status === 'completed') {
+        setCompileStatus('success');
+        setCompileResult({
+          task_id: finalTask.task_id,
+          video_url: finalTask.video_url || undefined,
+          srt_url: finalTask.srt_url || undefined,
+          message: finalTask.message
+        });
+        setProgressMessage('编译成功！');
+        
+        // 将编译生成的视频URL设置到播放器中
+        if (finalTask.video_url) {
+          setCurrentVideoUrl(finalTask.video_url);
+          setCurrentTime(0); // 重置播放时间到开始
+          setIsPlaying(false); // 暂停播放
+          console.log('视频已更新:', finalTask.video_url);
+        }
+      } else {
+        setCompileStatus('error');
+        setErrorCount(1);
+        setProgressMessage(finalTask.message || '编译失败');
+      }
+
+    } catch (error) {
+      console.error('编译失败:', error);
+      setCompileStatus('error');
+      setErrorCount(1);
+      setProgressMessage(error instanceof Error ? error.message : '编译过程中发生未知错误');
     } finally {
       setIsCompiling(false);
     }
@@ -198,7 +261,7 @@ const UnifiedWorkspace: React.FC = () => {
   useEffect(() => {
     if (!editorRef.current || !monacoRef.current || currentMode !== 'edit') return;
 
-    const totalLines = MOCK_MARKDOWN.split('\n').length;
+    const totalLines = editorContent.split('\n').length;
     const line = Math.min(Math.floor(currentTime / 6) + 1, totalLines);
     
     const newDecorations = editorRef.current.deltaDecorations(decorations, [
@@ -215,7 +278,7 @@ const UnifiedWorkspace: React.FC = () => {
     if (isPlaying) {
       editorRef.current.revealLineInCenter(line);
     }
-  }, [currentTime, isPlaying, currentMode]);
+  }, [currentTime, isPlaying, currentMode, editorContent]);
 
   // Auto-scroll transcript in debug mode
   useEffect(() => {
@@ -310,7 +373,7 @@ const UnifiedWorkspace: React.FC = () => {
                 /* Left: Video */
                 <div className="h-full bg-black flex flex-col justify-center relative">
                   <UnifiedVideoPlayer
-                    src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                    src={currentVideoUrl}
                     currentTime={currentTime}
                     onTimeUpdate={setCurrentTime}
                     isPlaying={isPlaying}
@@ -336,8 +399,10 @@ const UnifiedWorkspace: React.FC = () => {
                         onCompile={handleCompile}
                         isCompiling={isCompiling}
                         compileStatus={compileStatus}
+                        compileResult={compileResult}
                         errorCount={errorCount}
                         warningCount={warningCount}
+                        progressMessage={progressMessage}
                       />
                       
                       <div className="flex-1">
@@ -345,7 +410,8 @@ const UnifiedWorkspace: React.FC = () => {
                           height="100%"
                           defaultLanguage="markdown"
                           theme="vs-dark"
-                          value={MOCK_MARKDOWN}
+                          value={editorContent}
+                          onChange={(value) => setEditorContent(value || '')}
                           onMount={handleEditorDidMount}
                           options={{
                             minimap: { enabled: false },
@@ -426,8 +492,10 @@ const UnifiedWorkspace: React.FC = () => {
                       onCompile={handleCompile}
                       isCompiling={isCompiling}
                       compileStatus={compileStatus}
+                      compileResult={compileResult}
                       errorCount={errorCount}
                       warningCount={warningCount}
+                      progressMessage={progressMessage}
                     />
                     
                     <div className="flex-1">
@@ -435,7 +503,8 @@ const UnifiedWorkspace: React.FC = () => {
                         height="100%"
                         defaultLanguage="markdown"
                         theme="vs-dark"
-                        value={MOCK_MARKDOWN}
+                        value={editorContent}
+                        onChange={(value) => setEditorContent(value || '')}
                         onMount={handleEditorDidMount}
                         options={{
                           minimap: { enabled: false },
@@ -455,7 +524,7 @@ const UnifiedWorkspace: React.FC = () => {
                   <div className="h-full bg-black relative flex flex-col">
                     <div className="flex-1 relative">
                       <UnifiedVideoPlayer 
-                        src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                        src={currentVideoUrl}
                         currentTime={currentTime}
                         onTimeUpdate={setCurrentTime}
                         isPlaying={isPlaying}
@@ -483,7 +552,7 @@ const UnifiedWorkspace: React.FC = () => {
                 leftPanel={
                   <div className="h-full bg-black flex flex-col justify-center relative">
                     <UnifiedVideoPlayer
-                      src="https://media.w3.org/2010/05/sintel/trailer.mp4"
+                      src={currentVideoUrl}
                       currentTime={currentTime}
                       onTimeUpdate={setCurrentTime}
                       isPlaying={isPlaying}

@@ -2,7 +2,7 @@ import { Course, Commit, CrashPoint, TranscriptLine } from './types';
 
 // 环境变量配置
 export const CONFIG = {
-  VIDEO_SERVER_URL: 'https://frp-put.com:33747/videos',
+  VIDEO_SERVER_URL: 'https://frp-put.com:33747',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
 } as const;
 
@@ -36,46 +36,44 @@ export const COURSES: Course[] = [
   }
 ];
 
-export const MOCK_MARKDOWN = `# 课程 01: 微积分本质 - 极限与导数
+export const MOCK_MARKDOWN = `
+<question>
+设函数 $f(x) = 5\cos x - \cos 5x$。
 
-> 作者: 3Blue1Brown (Mirror)
-> 难度: 入门
-> 版本: v1.2
+（1）求 $f(x)$ 在 $ <quote3>(0, \frac{\pi}{4})</quote3>$ 的最大值；
 
-## 1. 引入 (Intro)
-欢迎来到异步课堂。
-今天我们要探讨的是微积分的核心——**导数**。
-很多人认为导数就是公式，但在我看来，它是一种看待变化的视角。
+（2）给定 $\theta \in (0, \pi)$，设 $a$ 为实数，证明：存在 $y \in [a-\theta, a+\theta]$，使得 $\cos y \leq \cos \theta$；
 
-## 2. 几何构建 (Setup)
-首先，让我们构建一个直观的几何场景。
-我们需要一个坐标系，以及一条函数曲线。
+（3）若存在 $t$ 使得对任意 $x$，都有 $5\cos x - \cos(5x + t) \leq b$，求 $b$ 的最小值。
+</question>
 
-$$ f(x) = x^3 - 2x $$
+<narrator>
+首先来看一下第一小问，求0到pi/4的最大值，最快的方法是和差化积。
+</narrator>
 
-看这条白色的曲线，它展示了函数值的变化。
+<sametime>
+<answer>
+$ f'(x) = -5\sin x + 5\sin 5x = <quote1>5(\sin 5x - \sin x) </quote1> = <quote2>10\cos 3x \cdot \sin 2x</quote2> $
+</answer>
 
-## 3. 切线的定义 (Tangent Line)
-导数的几何意义是**切线的斜率**。
-但切线是什么？
-如果不使用极限的概念，我们很难精确定义"切于一点"的直线。
+<narrator>
+首先直接对它求导会发现，<quote1/> 此部分可进行和差化积，得到结果<quote2/>
+而由于条件 <quote3/> 所以 sin 2x 大于零，因此 cos 3x决定零点。
+</narrator>
 
-## 4. 割线逼近 (Secant Approximation)
-:::关键点:::
-我们先画一条**割线**，连接曲线上的两点 $A$ 和 $B$。
-这两点的水平距离我们称为 $\Delta x$。
+</sametime>
 
-当我们将 $\Delta x$ 逐渐缩小，让 $B$ 点无限靠近 $A$ 点...
-观察发生了什么？
+<sametime>
+<answer>
 
-割线最终变成了切线。
-这就是导数的定义：
+$f(x)$在 $(0,\frac{\pi}{6}) \nearrow$ 在$(\frac{\pi}{6},\frac{\pi}{4}) \searrow$
 
-$$ \\frac{dy}{dx} = \\lim_{\\Delta x \\to 0} \\frac{f(x+\\Delta x) - f(x)}{\\Delta x} $$
+</answer>
 
-## 5. 总结 (Conclusion)
-理解了这个动态过程，你就理解了导数的灵魂。
-如果对切线变化仍有疑问，请查看右侧的思维断点图。
+<narrator>
+因此可知 f(x)在0到六分之派单调递增，在六分之派到四分之派单调递减。
+</narrator>
+</sametime>
 `;
 
 export const COMMITS: Commit[] = [
