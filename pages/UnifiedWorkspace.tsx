@@ -9,15 +9,15 @@ import CrashPanel from '../components/CrashPanel';
 import UnifiedVideoPlayer from '../components/UnifiedVideoPlayer';
 import ResizableSplitter from '../components/ResizableSplitter';
 import Sidebar, { SidebarTab } from '../components/Sidebar';
-import SidePanel from '../components/SidePanel';
 import GitLensPanel from '../components/GitLensPanel';
 import FloatingGitDock from '../components/FloatingGitDock';
 import FloatingAIDock from '../components/FloatingAIDock';
 import FloatingAIButton from '../components/FloatingAIButton';
 import CompileToolbar from '../components/CompileToolbar';
 import { COURSES, MOCK_MARKDOWN, COMMITS, TRANSCRIPT, CRASH_DATA } from '../constants';
-import { getPanelTitle } from '../utils';
 import { CompileService, CompileTask } from '../services/compileService';
+import { TranscriptLine } from '../types';
+
 
 const UnifiedWorkspace: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,6 +47,11 @@ const UnifiedWorkspace: React.FC = () => {
   const [currentVideoUrl, setCurrentVideoUrl] = useState("https://media.w3.org/2010/05/sintel/trailer.mp4");
   const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(true);
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
+  
+  // 字幕数据状态
+  const [transcriptData, setTranscriptData] = useState<TranscriptLine[]>(TRANSCRIPT);
+  const [isLoadingSubtitles, setIsLoadingSubtitles] = useState(false);
+  const [subtitlesError, setSubtitlesError] = useState<string | null>(null);
   
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
@@ -84,12 +89,22 @@ const UnifiedWorkspace: React.FC = () => {
           console.error("❌ 无视频URL，taskData:", taskData);
         }
         
+        // 如果有字幕URL，加载字幕数据
+        if (taskData.srt_url) {
+          console.log("✅ 有字幕URL:", taskData.srt_url);
+          await loadSubtitles(taskData.srt_url);
+        } else {
+          console.log("⚠️ 无字幕URL，使用默认TRANSCRIPT数据");
+          setTranscriptData(TRANSCRIPT);
+        }
+        
         console.log('Workspace数据加载成功:', taskData);
       } catch (error) {
         console.error('加载workspace数据失败:', error);
         setWorkspaceError(error instanceof Error ? error.message : '加载workspace数据失败');
         // 出错时使用默认内容
         setEditorContent(MOCK_MARKDOWN);
+        setTranscriptData(TRANSCRIPT);
       } finally {
         setIsLoadingWorkspace(false);
       }
@@ -97,6 +112,26 @@ const UnifiedWorkspace: React.FC = () => {
 
     loadWorkspaceData();
   }, [id]);
+
+  // 加载字幕数据
+  const loadSubtitles = async (srtUrl: string) => {
+    try {
+      setIsLoadingSubtitles(true);
+      setSubtitlesError(null);
+      
+      const subtitles = await CompileService.getSubtitles(srtUrl);
+      setTranscriptData(subtitles);
+      
+      console.log('✅ 字幕数据加载成功:', subtitles);
+    } catch (error) {
+      console.error('❌ 加载字幕数据失败:', error);
+      setSubtitlesError(error instanceof Error ? error.message : '加载字幕数据失败');
+      // 出错时使用默认TRANSCRIPT数据
+      setTranscriptData(TRANSCRIPT);
+    } finally {
+      setIsLoadingSubtitles(false);
+    }
+  };
 
   const handleTabChange = (tab: SidebarTab) => {
     // 如果点击git选项卡，显示浮动dock而不是侧边栏
@@ -212,7 +247,7 @@ const UnifiedWorkspace: React.FC = () => {
               setProgressMessage('任务排队中...');
               break;
             case 'processing':
-              setProgressMessage('正在编译视频...');
+              setProgressMessage('正在编·译视频...');
               break;
             case 'completed':
               setProgressMessage('编译完成！');
@@ -241,6 +276,12 @@ const UnifiedWorkspace: React.FC = () => {
           setCurrentVideoUrl(finalTask.video_url);
           setCurrentTime(0); // 重置播放时间到开始
           setIsPlaying(false); // 暂停播放
+          
+          // 如果有字幕URL，也更新字幕数据
+          if (finalTask.srt_url) {
+            console.log('✅ 字幕已更新:', finalTask.srt_url);
+            await loadSubtitles(finalTask.srt_url);
+          }
         } else {
           console.error("❌ 编译完成但没有视频URL，finalTask:", finalTask);
         }
@@ -262,22 +303,22 @@ const UnifiedWorkspace: React.FC = () => {
 
   // Debug toolbar handlers
   const handleStepForward = () => {
-    const currentIndex = TRANSCRIPT.findIndex(
+    const currentIndex = transcriptData.findIndex(
       line => currentTime >= line.startTime && currentTime < line.endTime
     );
-    const nextIndex = Math.min(currentIndex + 1, TRANSCRIPT.length - 1);
-    if (nextIndex >= 0 && TRANSCRIPT[nextIndex]) {
-      setCurrentTime(TRANSCRIPT[nextIndex].startTime);
+    const nextIndex = Math.min(currentIndex + 1, transcriptData.length - 1);
+    if (nextIndex >= 0 && transcriptData[nextIndex]) {
+      setCurrentTime(transcriptData[nextIndex].startTime);
     }
   };
 
   const handleStepBack = () => {
-    const currentIndex = TRANSCRIPT.findIndex(
+    const currentIndex = transcriptData.findIndex(
       line => currentTime >= line.startTime && currentTime < line.endTime
     );
     const prevIndex = Math.max(currentIndex - 1, 0);
-    if (prevIndex >= 0 && TRANSCRIPT[prevIndex]) {
-      setCurrentTime(TRANSCRIPT[prevIndex].startTime);
+    if (prevIndex >= 0 && transcriptData[prevIndex]) {
+      setCurrentTime(transcriptData[prevIndex].startTime);
     }
   };
 
@@ -334,7 +375,7 @@ const UnifiedWorkspace: React.FC = () => {
   useEffect(() => {
     if (currentMode !== 'debug') return;
     
-    const activeIndex = TRANSCRIPT.findIndex(
+    const activeIndex = transcriptData.findIndex(
       line => currentTime >= line.startTime && currentTime < line.endTime
     );
     
@@ -344,7 +385,7 @@ const UnifiedWorkspace: React.FC = () => {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
-  }, [currentTime, currentMode]);
+  }, [currentTime, currentMode, transcriptData]);
 
   return (
     <div className="h-screen flex bg-background overflow-hidden">
@@ -513,7 +554,20 @@ const UnifiedWorkspace: React.FC = () => {
                       </div>
                       
                       <div className="space-y-4 w-full">
-                        {TRANSCRIPT.map((line) => {
+                        {isLoadingSubtitles ? (
+                          <div className="text-center py-8">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+                            <p className="text-slate-400 text-sm">正在加载字幕数据...</p>
+                          </div>
+                        ) : subtitlesError ? (
+                          <div className="text-center py-8">
+                            <p className="text-red-400 text-sm mb-2">字幕加载失败</p>
+                            <p className="text-slate-500 text-xs">{subtitlesError}</p>
+                            <p className="text-slate-400 text-xs mt-2">使用默认字幕数据</p>
+                          </div>
+                        ) : null}
+                        
+                        {transcriptData.map((line) => {
                           const isActive = currentTime >= line.startTime && currentTime < line.endTime;
                           return (
                             <div 
@@ -671,7 +725,7 @@ const UnifiedWorkspace: React.FC = () => {
                       </div>
                       
                       <div className="space-y-4 w-full">
-                        {TRANSCRIPT.map((line) => {
+                        {transcriptData.map((line) => {
                           const isActive = currentTime >= line.startTime && currentTime < line.endTime;
                           return (
                             <div 

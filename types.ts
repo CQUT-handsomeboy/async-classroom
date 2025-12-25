@@ -16,7 +16,7 @@ export interface Commit {
   author: string;
   date: string;
   isCurrent: boolean;
-  branch: 'main' | 'student-fork' | 'feature-visuals';
+  branch: 'main' | 'student-fork' | 'feature-visuals' | 'feature/controls' | 'experiment/webgl' | 'hotfix/calculation' | 'docs/api';
 }
 
 export interface CrashPoint {
