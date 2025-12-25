@@ -55,3 +55,9 @@ export interface TasksResponse {
   limit: number | null;
   tasks: Task[];
 }
+
+export interface Breakpoint {
+  start_time: string;  // 开始时间 (HH:MM:SS,mmm)
+  end_time: string;    // 结束时间 (HH:MM:SS,mmm)
+  text: string;        // 字幕文本
+}

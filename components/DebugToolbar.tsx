@@ -21,7 +21,6 @@ interface DebugToolbarProps {
   onBreakpoint: () => void;
   onStepIn: () => void;
   onStepOut: () => void;
-  onStepOver: () => void;
   onRestart: () => void;
 }
 
@@ -34,7 +33,6 @@ const DebugToolbar: React.FC<DebugToolbarProps> = ({
   onBreakpoint,
   onStepIn,
   onStepOut,
-  onStepOver,
   onRestart
 }) => {
   return (
@@ -97,15 +95,6 @@ const DebugToolbar: React.FC<DebugToolbarProps> = ({
           title="步入 (Step In)"
         >
           <ArrowDown size={16} className="group-hover:scale-110 transition-transform" />
-        </button>
-
-        {/* Step Over */}
-        <button
-          onClick={onStepOver}
-          className="p-2.5 rounded-xl transition-all duration-300 hover:bg-purple-500/30 text-slate-300 hover:text-purple-200 hover:border-purple-400/30 border border-transparent group"
-          title="步过 (Step Over)"
-        >
-          <ArrowRight size={16} className="group-hover:scale-110 transition-transform" />
         </button>
 
         {/* Step Out */}

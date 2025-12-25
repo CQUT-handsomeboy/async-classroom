@@ -101,6 +101,47 @@ class ApiService {
     return this.accessToken || localStorage.getItem('access_token');
   }
 
+  // 创建断点
+  async createBreakpoint(id: string, breakpoint: Breakpoint): Promise<void> {
+    console.log('📍 创建断点:', id, breakpoint);
+    
+    const token = this.getAccessToken();
+    if (!token) {
+      throw new Error('未登录，请先登录');
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/breakpoints/${id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(breakpoint),
+      });
+
+      console.log('📍 创建断点响应状态:', response.status);
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.clearAuth();
+          throw new Error('登录已过期，请重新登录');
+        }
+        const errorText = await response.text();
+        console.error('❌ 创建断点失败:', errorText);
+        throw new Error(`创建断点失败: ${response.status} ${response.statusText}`);
+      }
+
+      console.log('✅ 创建断点成功');
+    } catch (error) {
+      console.error('❌ 创建断点异常:', error);
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('网络连接失败，请检查网络连接或稍后重试');
+      }
+      throw error;
+    }
+  }
+
   // 获取课程数据（从任务转换）
   async getCourseDataFromTasks(offset: number = 0, limit: number | null = null): Promise<Course[]> {
     console.log('📋 获取课程数据（从任务转换）, offset:', offset, 'limit:', limit);
@@ -184,7 +225,7 @@ export function scriptToCourse(script: Script): Course {
 }
 
 // 导入Course类型
-import { Course, Task, TasksResponse } from '../types';
+import { Course, Task, TasksResponse, Breakpoint } from '../types';
 
 // 将Task转换为Course格式
 export function taskToCourse(task: Task): Course {

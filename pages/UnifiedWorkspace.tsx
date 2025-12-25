@@ -16,7 +16,9 @@ import FloatingAIButton from '../components/FloatingAIButton';
 import CompileToolbar from '../components/CompileToolbar';
 import { COURSES, MOCK_MARKDOWN, COMMITS, TRANSCRIPT, CRASH_DATA } from '../constants';
 import { CompileService, CompileTask } from '../services/compileService';
-import { TranscriptLine } from '../types';
+import { apiService } from '../services/api';
+import { TranscriptLine, Breakpoint } from '../types';
+import { secondsToSrtTime } from '../utils';
 
 
 const UnifiedWorkspace: React.FC = () => {
@@ -322,21 +324,69 @@ const UnifiedWorkspace: React.FC = () => {
     }
   };
 
-  const handleBreakpoint = () => {
+  const handleBreakpoint = async () => {
     setIsPlaying(false);
     console.log('学生表示没听懂，触发断点');
+    
+    // 找到当前时间对应的字幕行
+    const currentIndex = transcriptData.findIndex(
+      line => currentTime >= line.startTime && currentTime < line.endTime
+    );
+    
+    if (currentIndex >= 0) {
+      const currentLine = transcriptData[currentIndex];
+      
+      // 创建断点数据
+      const breakpoint: Breakpoint = {
+        start_time: secondsToSrtTime(currentTime),
+        end_time: secondsToSrtTime(currentTime), // 对于断点而言，开始和结束时间相同
+        text: currentLine.text
+      };
+      
+      console.log('创建断点:', breakpoint);
+      
+      try {
+        // 调用API创建断点
+        if (id) {
+          await apiService.createBreakpoint(id, breakpoint);
+          console.log('✅ 断点创建成功');
+          
+          // 可以在这里添加用户反馈，比如显示通知
+          // 或者触发其他UI更新
+        } else {
+          console.error('❌ 无法创建断点：缺少workspace ID');
+        }
+      } catch (error) {
+        console.error('❌ 创建断点失败:', error);
+        // 可以在这里添加错误处理，比如显示错误消息
+      }
+    } else {
+      console.warn('⚠️ 未找到当前时间对应的字幕行');
+      
+      // 即使没有找到字幕行，也可以创建一个基本的断点
+      const breakpoint: Breakpoint = {
+        start_time: secondsToSrtTime(currentTime),
+        end_time: secondsToSrtTime(currentTime),
+        text: "学生在此处表示没听懂"
+      };
+      
+      try {
+        if (id) {
+          await apiService.createBreakpoint(id, breakpoint);
+          console.log('✅ 基本断点创建成功');
+        }
+      } catch (error) {
+        console.error('❌ 创建基本断点失败:', error);
+      }
+    }
   };
 
   const handleStepIn = () => {
-    console.log('步入详细解释');
+    console.log('Step In 步入这一句的详细解释');
   };
 
   const handleStepOut = () => {
-    console.log('步出到上级概念');
-  };
-
-  const handleStepOver = () => {
-    handleStepForward();
+    console.log('联系整个上下文对当前概念进行解释');
   };
 
   const handleRestart = () => {
@@ -547,7 +597,6 @@ const UnifiedWorkspace: React.FC = () => {
                             onBreakpoint={handleBreakpoint}
                             onStepIn={handleStepIn}
                             onStepOut={handleStepOut}
-                            onStepOver={handleStepOver}
                             onRestart={handleRestart}
                           />
                         </div>
@@ -718,7 +767,6 @@ const UnifiedWorkspace: React.FC = () => {
                             onBreakpoint={handleBreakpoint}
                             onStepIn={handleStepIn}
                             onStepOut={handleStepOut}
-                            onStepOver={handleStepOver}
                             onRestart={handleRestart}
                           />
                         </div>
