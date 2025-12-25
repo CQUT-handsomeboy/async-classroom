@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User } from 'lucide-react';
-import { ChatMessage } from '../types';
+import { ChatMessage, Breakpoint } from '../types';
 import { createChatSession, sendMessage } from '../services/geminiService';
 import { Chat } from '@google/genai';
 
 interface AIChatProps {
   contextCode: string; // The current code/markdown shown to the student
+  breakpoints?: Breakpoint[]; // 断点数据作为上下文
 }
 
-const AIChat: React.FC<AIChatProps> = ({ contextCode }) => {
+const AIChat: React.FC<AIChatProps> = ({ contextCode, breakpoints = [] }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,15 +18,25 @@ const AIChat: React.FC<AIChatProps> = ({ contextCode }) => {
 
   useEffect(() => {
     // Initialize session with context
-    const systemPrompt = `You are a helpful teaching assistant for an educational platform where courses are written in Markdown and compiled to video. 
+    let systemPrompt = `You are a helpful teaching assistant for an educational platform where courses are written in Markdown and compiled to video. 
     The student is currently looking at the following lesson plan (Markdown):
     \`\`\`markdown
     ${contextCode}
-    \`\`\`
-    Answer their questions concisely and encourage them to understand the mathematical concepts or the logic in the lesson.`;
+    \`\`\``;
+    
+    // 如果有断点数据，添加到上下文中
+    if (breakpoints.length > 0) {
+      systemPrompt += `\n\nThe student has marked the following learning breakpoints where they had difficulties:`;
+      breakpoints.forEach((bp, index) => {
+        systemPrompt += `\n${index + 1}. At time ${bp.start_time}: "${bp.description || bp.text}"`;
+      });
+      systemPrompt += `\n\nPlease pay special attention to these areas when answering questions, as the student has indicated they found these concepts challenging.`;
+    }
+    
+    systemPrompt += `\nAnswer their questions concisely and encourage them to understand the mathematical concepts or the logic in the lesson.`;
     
     chatSessionRef.current = createChatSession(systemPrompt);
-  }, [contextCode]);
+  }, [contextCode, breakpoints]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

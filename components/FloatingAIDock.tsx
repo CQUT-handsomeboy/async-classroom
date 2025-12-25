@@ -10,7 +10,7 @@ import {
   Code,
   Circle
 } from 'lucide-react';
-import { ChatMessage } from '../types';
+import { ChatMessage, Breakpoint } from '../types';
 import { createChatSession, sendMessage } from '../services/geminiService';
 import { Chat } from '@google/genai';
 
@@ -23,11 +23,7 @@ interface FloatingAIDockProps {
     file: string;
     line: number;
   };
-  breakpoints?: Array<{
-    file: string;
-    line: number;
-    condition?: string;
-  }>;
+  breakpoints?: Breakpoint[]; // 改为使用实际的断点数据
 }
 
 const FloatingAIDock: React.FC<FloatingAIDockProps> = ({ 
@@ -53,12 +49,25 @@ const FloatingAIDock: React.FC<FloatingAIDockProps> = ({
 
   useEffect(() => {
     // Initialize session with context
-    const systemPrompt = `You are a helpful AI assistant for an educational platform. 
-    ${contextCode ? `The user is currently looking at the following content:\n\`\`\`\n${contextCode}\n\`\`\`` : ''}
-    Answer their questions concisely and help them understand the concepts.`;
+    let systemPrompt = `You are a helpful AI assistant for an educational platform.`;
+    
+    if (contextCode) {
+      systemPrompt += `\nThe user is currently looking at the following content:\n\`\`\`\n${contextCode}\n\`\`\``;
+    }
+    
+    // 如果有断点数据，添加到上下文中
+    if (breakpoints && breakpoints.length > 0) {
+      systemPrompt += `\n\nThe student has marked the following learning breakpoints where they had difficulties:`;
+      breakpoints.forEach((bp, index) => {
+        systemPrompt += `\n${index + 1}. At time ${bp.start_time}: "${bp.description || bp.text}"`;
+      });
+      systemPrompt += `\n\nPlease pay special attention to these areas when answering questions, as the student has indicated they found these concepts challenging.`;
+    }
+    
+    systemPrompt += `\nAnswer their questions concisely and help them understand the concepts.`;
     
     chatSessionRef.current = createChatSession(systemPrompt);
-  }, [contextCode]);
+  }, [contextCode, breakpoints]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -237,21 +246,21 @@ const FloatingAIDock: React.FC<FloatingAIDockProps> = ({
               
               {/* 右侧：断点信息 */}
               <div className="flex items-center gap-2">
-                {breakpoints.length > 0 ? (
+                {breakpoints && breakpoints.length > 0 ? (
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-white/70 backdrop-blur-sm rounded-lg border border-red-200/50 shadow-sm">
                     <Circle size={14} className="text-red-600 fill-current" />
                     <span className="text-xs font-medium text-red-800">
-                      {breakpoints.length} 个断点
+                      {breakpoints.length} 个学习断点
                     </span>
-                    <span className="text-xs text-red-600">
-                      {breakpoints[0]?.file}:{breakpoints[0]?.line}
+                    <span className="text-xs text-red-600 max-w-32 truncate">
+                      {breakpoints[0]?.description || breakpoints[0]?.text}
                       {breakpoints.length > 1 && ` +${breakpoints.length - 1}`}
                     </span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-white/50 backdrop-blur-sm rounded-lg border border-gray-200/50">
                     <Circle size={14} className="text-gray-400" />
-                    <span className="text-xs text-gray-500">无断点</span>
+                    <span className="text-xs text-gray-500">无学习断点</span>
                   </div>
                 )}
               </div>

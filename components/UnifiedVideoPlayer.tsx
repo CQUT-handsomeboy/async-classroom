@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Play, Pause, Volume2, Maximize, Settings, SkipBack, SkipForward } from 'lucide-react';
+import { BreakpointMarker } from '../types';
 
 interface UnifiedVideoPlayerProps {
   src: string;
@@ -12,6 +13,7 @@ interface UnifiedVideoPlayerProps {
   className?: string;
   showAdvancedControls?: boolean;
   onSeek?: (time: number) => void;
+  breakpoints?: BreakpointMarker[];
 }
 
 const UnifiedVideoPlayer: React.FC<UnifiedVideoPlayerProps> = ({ 
@@ -24,7 +26,8 @@ const UnifiedVideoPlayer: React.FC<UnifiedVideoPlayerProps> = ({
   onVolumeChange,
   className = '',
   showAdvancedControls = true,
-  onSeek
+  onSeek,
+  breakpoints = []
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [duration, setDuration] = useState(0);
@@ -193,6 +196,32 @@ const UnifiedVideoPlayer: React.FC<UnifiedVideoPlayerProps> = ({
               >
                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg transform translate-x-2"></div>
               </div>
+              
+              {/* 断点标记 */}
+              {breakpoints.map((breakpoint) => {
+                const breakpointPercentage = duration > 0 ? (breakpoint.time / duration) * 100 : 0;
+                return (
+                  <div
+                    key={breakpoint.id}
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-red-500 rounded-full shadow-lg border-2 border-white/50 cursor-pointer hover:scale-125 transition-transform group"
+                    style={{ left: `${breakpointPercentage}%` }}
+                    title={`断点: ${breakpoint.description}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onSeek) {
+                        onSeek(breakpoint.time);
+                      } else {
+                        onTimeUpdate(breakpoint.time);
+                      }
+                    }}
+                  >
+                    {/* 悬浮提示 */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                      {breakpoint.description}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             
             {/* Time Display */}

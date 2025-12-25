@@ -60,4 +60,11 @@ export interface Breakpoint {
   start_time: string;  // 开始时间 (HH:MM:SS,mmm)
   end_time: string;    // 结束时间 (HH:MM:SS,mmm)
   text: string;        // 字幕文本
+  description?: string; // 用户输入的描述
+}
+
+export interface BreakpointMarker {
+  id: string;
+  time: number;        // 断点时间（秒）
+  description: string; // 断点描述
 }

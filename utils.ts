@@ -30,3 +30,16 @@ export const secondsToSrtTime = (seconds: number): string => {
   
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')},${milliseconds.toString().padStart(3, '0')}`;
 };
+
+/**
+ * 将字幕时间格式 (HH:MM:SS,mmm) 转换为秒数
+ * @param srtTime 字幕时间格式字符串
+ * @returns 秒数
+ */
+export const srtTimeToSeconds = (srtTime: string): number => {
+  const [timePart, millisecondsPart] = srtTime.split(',');
+  const [hours, minutes, seconds] = timePart.split(':').map(Number);
+  const milliseconds = parseInt(millisecondsPart, 10);
+  
+  return hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
+};

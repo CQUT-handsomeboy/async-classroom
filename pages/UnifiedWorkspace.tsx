@@ -14,11 +14,12 @@ import FloatingGitDock from '../components/FloatingGitDock';
 import FloatingAIDock from '../components/FloatingAIDock';
 import FloatingAIButton from '../components/FloatingAIButton';
 import CompileToolbar from '../components/CompileToolbar';
+import BreakpointModal from '../components/BreakpointModal';
 import { COURSES, MOCK_MARKDOWN, COMMITS, TRANSCRIPT, CRASH_DATA } from '../constants';
 import { CompileService, CompileTask } from '../services/compileService';
 import { apiService } from '../services/api';
-import { TranscriptLine, Breakpoint } from '../types';
-import { secondsToSrtTime } from '../utils';
+import { TranscriptLine, Breakpoint, BreakpointMarker } from '../types';
+import { secondsToSrtTime, srtTimeToSeconds } from '../utils';
 
 
 const UnifiedWorkspace: React.FC = () => {
@@ -54,6 +55,13 @@ const UnifiedWorkspace: React.FC = () => {
   const [transcriptData, setTranscriptData] = useState<TranscriptLine[]>(TRANSCRIPT);
   const [isLoadingSubtitles, setIsLoadingSubtitles] = useState(false);
   const [subtitlesError, setSubtitlesError] = useState<string | null>(null);
+  
+  // 断点相关状态
+  const [breakpoints, setBreakpoints] = useState<BreakpointMarker[]>([]);
+  const [isBreakpointModalOpen, setIsBreakpointModalOpen] = useState(false);
+  const [pendingBreakpointTime, setPendingBreakpointTime] = useState<number>(0);
+  const [pendingBreakpointText, setPendingBreakpointText] = useState<string>('');
+  const [aiBreakpointsContext, setAiBreakpointsContext] = useState<Breakpoint[]>([]);
   
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
@@ -100,6 +108,9 @@ const UnifiedWorkspace: React.FC = () => {
           setTranscriptData(TRANSCRIPT);
         }
         
+        // 加载断点数据
+        await loadBreakpoints(id);
+        
         console.log('Workspace数据加载成功:', taskData);
       } catch (error) {
         console.error('加载workspace数据失败:', error);
@@ -134,6 +145,40 @@ const UnifiedWorkspace: React.FC = () => {
       setIsLoadingSubtitles(false);
     }
   };
+
+  // 加载断点数据
+  const loadBreakpoints = async (workspaceId: string) => {
+    try {
+      console.log('📍 开始加载断点数据:', workspaceId);
+      
+      const breakpointsData = await apiService.getBreakpoints(workspaceId);
+      
+      // 设置AI助手的断点上下文
+      setAiBreakpointsContext(breakpointsData);
+      
+      // 将API返回的断点数据转换为UI需要的格式
+      const breakpointMarkers: BreakpointMarker[] = breakpointsData.map((bp, index) => {
+        // 将时间格式 HH:MM:SS,mmm 转换为秒数
+        const timeInSeconds = srtTimeToSeconds(bp.start_time);
+        
+        return {
+          id: `breakpoint-${index}-${Date.now()}`,
+          time: timeInSeconds,
+          description: bp.description || bp.text || '学习断点'
+        };
+      });
+      
+      setBreakpoints(breakpointMarkers);
+      console.log('✅ 断点数据加载成功:', breakpointMarkers);
+    } catch (error) {
+      console.error('❌ 加载断点数据失败:', error);
+      // 出错时不影响其他功能，只是没有断点标记
+      setBreakpoints([]);
+      setAiBreakpointsContext([]);
+    }
+  };
+
+
 
   const handleTabChange = (tab: SidebarTab) => {
     // 如果点击git选项卡，显示浮动dock而不是侧边栏
@@ -188,7 +233,7 @@ const UnifiedWorkspace: React.FC = () => {
         );
       case 'chat':
         return currentMode === 'debug' 
-          ? <AIChat contextCode={MOCK_MARKDOWN} />
+          ? <AIChat contextCode={MOCK_MARKDOWN} breakpoints={aiBreakpointsContext} />
           : (
             <div className="p-6">
               <h3 className="text-lg font-semibold text-slate-200 mb-4">AI 助手</h3>
@@ -324,7 +369,7 @@ const UnifiedWorkspace: React.FC = () => {
     }
   };
 
-  const handleBreakpoint = async () => {
+  const handleBreakpoint = () => {
     setIsPlaying(false);
     console.log('学生表示没听懂，触发断点');
     
@@ -333,51 +378,54 @@ const UnifiedWorkspace: React.FC = () => {
       line => currentTime >= line.startTime && currentTime < line.endTime
     );
     
-    if (currentIndex >= 0) {
-      const currentLine = transcriptData[currentIndex];
-      
+    const currentLine = currentIndex >= 0 ? transcriptData[currentIndex] : null;
+    
+    // 设置待处理的断点信息
+    setPendingBreakpointTime(currentTime);
+    setPendingBreakpointText(currentLine?.text || '');
+    
+    // 打开断点描述输入模态框
+    setIsBreakpointModalOpen(true);
+  };
+
+  const handleBreakpointSubmit = async (description: string) => {
+    try {
       // 创建断点数据
       const breakpoint: Breakpoint = {
-        start_time: secondsToSrtTime(currentTime),
-        end_time: secondsToSrtTime(currentTime), // 对于断点而言，开始和结束时间相同
-        text: currentLine.text
+        start_time: secondsToSrtTime(pendingBreakpointTime),
+        end_time: secondsToSrtTime(pendingBreakpointTime), // 对于断点而言，开始和结束时间相同
+        text: pendingBreakpointText || "学生在此处表示没听懂",
+        description: description
       };
       
       console.log('创建断点:', breakpoint);
       
-      try {
-        // 调用API创建断点
-        if (id) {
-          await apiService.createBreakpoint(id, breakpoint);
-          console.log('✅ 断点创建成功');
-          
-          // 可以在这里添加用户反馈，比如显示通知
-          // 或者触发其他UI更新
-        } else {
-          console.error('❌ 无法创建断点：缺少workspace ID');
-        }
-      } catch (error) {
-        console.error('❌ 创建断点失败:', error);
-        // 可以在这里添加错误处理，比如显示错误消息
+      // 调用API创建断点
+      if (id) {
+        await apiService.createBreakpoint(id, breakpoint);
+        console.log('✅ 断点创建成功');
+        
+        // 添加断点标记到本地状态
+        const newBreakpointMarker: BreakpointMarker = {
+          id: `breakpoint-${Date.now()}`,
+          time: pendingBreakpointTime,
+          description: description
+        };
+        
+        setBreakpoints(prev => [...prev, newBreakpointMarker]);
+        
+        // 更新AI助手的断点上下文
+        setAiBreakpointsContext(prev => [...prev, breakpoint]);
+        
+        // 可以在这里添加成功提示
+        console.log('✅ 断点标记已添加到视频进度条');
+      } else {
+        console.error('❌ 无法创建断点：缺少workspace ID');
+        throw new Error('缺少workspace ID');
       }
-    } else {
-      console.warn('⚠️ 未找到当前时间对应的字幕行');
-      
-      // 即使没有找到字幕行，也可以创建一个基本的断点
-      const breakpoint: Breakpoint = {
-        start_time: secondsToSrtTime(currentTime),
-        end_time: secondsToSrtTime(currentTime),
-        text: "学生在此处表示没听懂"
-      };
-      
-      try {
-        if (id) {
-          await apiService.createBreakpoint(id, breakpoint);
-          console.log('✅ 基本断点创建成功');
-        }
-      } catch (error) {
-        console.error('❌ 创建基本断点失败:', error);
-      }
+    } catch (error) {
+      console.error('❌ 创建断点失败:', error);
+      throw error; // 重新抛出错误，让模态框处理
     }
   };
 
@@ -462,17 +510,7 @@ const UnifiedWorkspace: React.FC = () => {
           file: "components/CompileToolbar.tsx",
           line: 42
         }}
-        breakpoints={[
-          {
-            file: "components/VideoPlayer.tsx",
-            line: 156,
-            condition: "isPlaying === true"
-          },
-          {
-            file: "utils.ts",
-            line: 23
-          }
-        ]}
+        breakpoints={aiBreakpointsContext}
       />
 
       {/* 浮动AI按钮 */}
@@ -527,6 +565,7 @@ const UnifiedWorkspace: React.FC = () => {
                       setCurrentTime(time);
                       setIsPlaying(false);
                     }}
+                    breakpoints={breakpoints}
                   />
                 </div>
               }
@@ -718,6 +757,7 @@ const UnifiedWorkspace: React.FC = () => {
                         onVolumeChange={setVolume}
                         className="w-full h-full"
                         showAdvancedControls={true}
+                        breakpoints={breakpoints}
                       />
                       
                       <div className="absolute top-4 right-4 liquid-glass-dark text-white px-3 py-1 rounded-lg text-xs flex items-center gap-2">
@@ -750,6 +790,7 @@ const UnifiedWorkspace: React.FC = () => {
                         setCurrentTime(time);
                         setIsPlaying(false);
                       }}
+                      breakpoints={breakpoints}
                     />
                   </div>
                 }
@@ -807,6 +848,15 @@ const UnifiedWorkspace: React.FC = () => {
           )}
         </div>
       </div>
+      
+      {/* 断点描述输入模态框 */}
+      <BreakpointModal
+        isOpen={isBreakpointModalOpen}
+        onClose={() => setIsBreakpointModalOpen(false)}
+        onSubmit={handleBreakpointSubmit}
+        currentTime={pendingBreakpointTime}
+        subtitleText={pendingBreakpointText}
+      />
     </div>
   );
 };
